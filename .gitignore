@@ -1,0 +1,24 @@
+﻿# Environment secrets — never commit these
+.env
+.env.local
+.env*.local
+**/.env
+**/.env.local
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js build output
+.next/
+**/.next/
+out/
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+
+# Keypairs / wallets — just in case any test keypair files exist
+*.json.keypair
+keypair.json

@@ -1,0 +1,221 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Tailwind v4 keeps its config in CSS: every `--color-*` below becomes a utility
+ * (`bg-paper`, `text-ink-muted`, `border-line`, …), so a theme change is an edit here, not a
+ * find-and-replace across components.
+ *
+ * Two deliberate modes: the landing page is LIGHT ("financial paper"); the app (Trade concept)
+ * is DARK ("terminal"). They share gold as the single accent and clay as the risk-only signal.
+ */
+@theme {
+  /* ---- Light: landing page ---- */
+  --color-paper: #f2f3f0; /* base background */
+  --color-paper-raised: #faf9f6; /* panel header strip (How It Works "What gets checked") */
+  --color-surface: #ffffff; /* elevated cards */
+  --color-ink: #1a1b17; /* primary text */
+  --color-ink-soft: #4a4940; /* hero sub-headline only */
+  --color-ink-muted: #6b6a61; /* secondary text */
+  --color-ink-faint: #9a988d; /* tertiary text */
+  --color-line: #e3e1d6; /* dividers, card borders */
+  --color-line-strong: #d8d6cc; /* pill/button outlines, separators */
+  --color-line-soft: #f0eee4; /* internal card dividers */
+  --color-gold-deep: #c9973a; /* button fill */
+  --color-gold-text: #b27a1f; /* headline accent, links, hover */
+  --color-gold-tint: #fbf1dd; /* icon chip backgrounds */
+  --color-gold-strong: #8a5e14; /* small gold text on light backgrounds: 5.11:1 on paper, 5.69:1 on white */
+  --color-gold-ink: #231b08; /* text on gold-deep buttons */
+  --color-clay-text: #b8452e; /* risk signal on light backgrounds */
+  --color-clay-tint: #f7e9e5;
+  --color-positive: #7a8c5c; /* live/positive values */
+  --color-positive-tint: #eef1e7;
+  --color-logo: #000000; /* logo mark tile */
+  --color-photo-muted: #e8e5da; /* body text over the closing-CTA photo */
+
+  /* ---- Shared accents ---- */
+  --color-gold: #e3b341; /* bright gold: icon strokes (light), the single accent (dark) */
+  --color-clay: #c2492f; /* risk/negative signal ONLY — never decorative */
+
+  /* ---- Dark: app / Trade concept ---- */
+  --color-charcoal: #14161b; /* base background */
+  --color-term-surface: #1b1e24; /* panels, notice strip, chips */
+  --color-term-raised: #22252c; /* fills: active tab, slider track, avatar */
+  /* Every dark divider and control border. The mockup mixed #22252C (dividers) with #2E323C
+     (chip/input borders); standardized on #22252C per the Phase 1 review. */
+  --color-term-line: #22252c;
+  /* Borders of interactive controls (chips, size input, menu button) — kept distinct from the
+     dividers so controls read as controls. WCAG 2.1 SC 1.4.11 needs ≥3:1 against adjacent
+     colors: #6B7184 measures 3.43:1 on term-surface #1B1E24 and 3.72:1 on charcoal #14161B
+     (#22252C was 1.09:1; the mockup's original #2E323C only 1.30:1). */
+  --color-term-control: #6b7184;
+  --color-term-text: #f5f3ee;
+  --color-term-muted: #b5afa0;
+  --color-term-faint: #63697a;
+}
+
+/* Fraunces = interpreted/human language; JetBrains Mono = verified/machine data (numbers, labels). */
+@theme inline {
+  --font-serif: var(--font-fraunces);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-logo: var(--font-manrope); /* the "Parity" logotype only */
+}
+
+/* "Explore Strategies" jumps to #strategies — smoothly, unless the user prefers reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/*
+ * The header is sticky, so in-page anchors (#strategies, #proof, …) must stop below it instead of
+ * underneath it. Header heights measured: ~73px below md, ~101–110px from md up.
+ */
+html {
+  scroll-padding-top: 84px;
+}
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 116px;
+  }
+}
+
+/*
+ * Scroll-reveal (see components/ScrollReveal.tsx). The script only ever adds data-reveal to
+ * sections that start below the fold, so with JS off — or for anything already on screen at load
+ * — content is simply visible. Fade-in-up: opacity 0→1, translateY 16px→0, 450ms ease-out.
+ */
+[data-reveal="hidden"] {
+  opacity: 0;
+  transform: translateY(16px);
+}
+[data-reveal="shown"] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 450ms ease-out,
+    transform 450ms ease-out;
+}
+/* prefers-reduced-motion: never hide, never animate — even if the attribute is present. */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/*
+ * Card hover: a soft shadow lift + 2px rise over 200ms. Applied to the bordered cards only —
+ * never the dark Verification Log or the spec-first callout, which are not interactive.
+ * Gated on hover-capable pointers so a tap on a phone doesn't leave a card stuck "lifted".
+ * Reduced motion keeps the shadow but drops the movement.
+ */
+.card-lift {
+  transition:
+    transform 200ms ease-out,
+    box-shadow 200ms ease-out;
+}
+@media (hover: hover) {
+  .card-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(26, 27, 23, 0.08);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-lift {
+    transition: box-shadow 200ms ease-out;
+  }
+  .card-lift:hover {
+    transform: none;
+  }
+}
+
+/*
+ * Strategies cards: a deliberately stronger hover than .card-lift — the most inviting cards on the
+ * page. At rest they keep their normal subtle border; on hover the border turns gold and a gold
+ * ring + soft gold glow appear (in addition to the 2px lift, which .card-lift already supplies).
+ * Also triggers when the card's arrow link is keyboard-focused, so it isn't mouse-only.
+ * Reduced motion: the glow still appears (colour change, not movement); only the lift is dropped.
+ */
+.card-glow {
+  transition:
+    transform 200ms ease-out,
+    box-shadow 200ms ease-out,
+    border-color 200ms ease-out;
+}
+@media (hover: hover) {
+  .card-glow:hover {
+    border-color: var(--color-gold-deep);
+    box-shadow:
+      0 0 0 1px var(--color-gold-deep),
+      0 8px 24px rgba(201, 151, 58, 0.15);
+  }
+}
+.card-glow:has(:focus-visible) {
+  border-color: var(--color-gold-deep);
+  box-shadow:
+    0 0 0 1px var(--color-gold-deep),
+    0 8px 24px rgba(201, 151, 58, 0.15);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-glow {
+    transition:
+      box-shadow 200ms ease-out,
+      border-color 200ms ease-out;
+  }
+  .card-glow:hover,
+  .card-glow:has(:focus-visible) {
+    transform: none;
+  }
+}
+
+/*
+ * Wallet-connect modal (from @solana/wallet-adapter-react-ui): re-skinned to Parity's dark terminal
+ * palette and fonts instead of the library's default blue-black + DM Sans. Selectors are prefixed with `body` so they beat the library's
+ * stylesheet, which loads after this file at equal specificity. Only colours/typography are overridden; the library's layout, focus handling and behaviour are untouched.
+ */
+body .wallet-adapter-modal-overlay {
+  background: rgba(20, 22, 27, 0.72);
+  backdrop-filter: blur(4px);
+}
+body .wallet-adapter-modal-wrapper {
+  background: var(--color-term-surface);
+  border: 1px solid var(--color-term-line);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  font-family: var(--font-serif), serif;
+}
+body .wallet-adapter-modal-title {
+  font-family: var(--font-serif), serif;
+  font-weight: 600;
+  font-size: 26px;
+  color: var(--color-term-text);
+}
+body .wallet-adapter-modal-list .wallet-adapter-button {
+  font-family: var(--font-mono), monospace;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-term-text);
+}
+body .wallet-adapter-modal-list .wallet-adapter-button:not([disabled]):hover,
+body .wallet-adapter-modal-list .wallet-adapter-button:not([disabled]):focus-visible {
+  background: var(--color-term-raised);
+}
+body .wallet-adapter-modal-list .wallet-adapter-button-end-icon {
+  color: var(--color-gold);
+}
+body .wallet-adapter-modal-list li:not(:first-child) {
+  box-shadow: 0 -1px 0 var(--color-term-line);
+}
+body .wallet-adapter-modal-list-more,
+body .wallet-adapter-modal-middle-button {
+  font-family: var(--font-mono), monospace;
+}
+body .wallet-adapter-modal-button-close {
+  background: var(--color-term-raised);
+}
+body .wallet-adapter-modal-button-close:focus-visible {
+  outline-color: var(--color-gold);
+}

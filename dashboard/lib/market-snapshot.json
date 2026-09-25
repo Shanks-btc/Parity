@@ -1,0 +1,386 @@
+{
+  "checkedAt": "2026-09-25T06:51:01.181Z",
+  "slot": "450276448",
+  "market": "5wJeMrUYECGq41fxRESKALVcHnNX26TAWy4W98yULsua",
+  "usdc": {
+    "borrowApyPct": 7.433073538179191,
+    "supplyApyPct": 6.025476991288947,
+    "netCarryPct": -1.407596546890244
+  },
+  "assets": {
+    "AAPLx": {
+      "loanToValuePct": 40,
+      "liquidationThresholdPct": 50,
+      "multiply": {
+        "obligations": 0,
+        "avgLeverage": null,
+        "rows": 0
+      }
+    },
+    "SPYx": {
+      "loanToValuePct": 73,
+      "liquidationThresholdPct": 75,
+      "multiply": {
+        "obligations": 17,
+        "avgLeverage": 2.0449168443548484,
+        "rows": 1
+      }
+    },
+    "TSLAx": {
+      "loanToValuePct": 55.00000000000001,
+      "liquidationThresholdPct": 65,
+      "multiply": {
+        "obligations": 11,
+        "avgLeverage": 1.5246876941367382,
+        "rows": 1
+      }
+    }
+  },
+  "spyxMultiply": {
+    "obligations": 17,
+    "avgLeverage": 2.0449168443548484,
+    "kaminoUpdatedOn": "2026-09-25T06:30:05.893Z"
+  },
+  "xstocks": [
+    {
+      "symbol": "SPYx",
+      "name": "SP500 xStock",
+      "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W",
+      "tokenProgram": "Token-2022",
+      "extensions": [
+        "metadataPointer",
+        "permanentDelegate",
+        "defaultAccountState",
+        "scaledUiAmountConfig",
+        "pausableConfig",
+        "confidentialTransferMint",
+        "transferHook",
+        "tokenMetadata"
+      ],
+      "uiMultiplier": {
+        "current": 1.005714560286254,
+        "effectiveSince": "2026-06-18T04:00:00.000Z",
+        "pending": null
+      },
+      "priceUsd": 771.7652392724656,
+      "loanToValuePct": 73,
+      "liquidationThresholdPct": 75,
+      "depositedTokens": 5449.139410534109,
+      "depositedUsd": 4205456.380999878,
+      "multiply": {
+        "obligations": 17,
+        "avgLeverage": 2.0449168443548484,
+        "rows": 1
+      }
+    },
+    {
+      "symbol": "QQQx",
+      "name": "Nasdaq xStock",
+      "mint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ",
+      "tokenProgram": "Token-2022",
+      "extensions": [
+        "metadataPointer",
+        "permanentDelegate",
+        "defaultAccountState",
+        "scaledUiAmountConfig",
+        "pausableConfig",
+        "confidentialTransferMint",
+        "transferHook",
+        "tokenMetadata"
+      ],
+      "uiMultiplier": {
+        "current": 1.0034560758968376,
+        "effectiveSince": "2026-09-19T23:00:00.000Z",
+        "pending": null
+      },
+      "priceUsd": 743.6914015294233,
+      "loanToValuePct": 70,
+      "liquidationThresholdPct": 72,
+      "depositedTokens": 3992.7675780255686,
+      "depositedUsd": 2969386.916083076,
+      "multiply": {
+        "obligations": 9,
+        "avgLeverage": 1.8014889002684003,
+        "rows": 1
+      }
+    },
+    {
+      "symbol": "HOODx",
+      "name": "Robinhood xStock",
+      "mint": "XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg",
+      "tokenProgram": "Token-2022",
+      "extensions": [
+        "metadataPointer",
+        "permanentDelegate",
+        "defaultAccountState",
+        "scaledUiAmountConfig",
+        "pausableConfig",
+        "confidentialTransferMint",
+        "transferHook",
+        "tokenMetadata"
+      ],
+      "uiMultiplier": {
+        "current": 1,
+        "effectiveSince": null,
+        "pending": null
+      },
+      "priceUsd": 120.83,
+      "loanToValuePct": 30,
+      "liquidationThresholdPct": 40,
+      "depositedTokens": 5659.42750812,
+      "depositedUsd": 683828.6258061395,
+      "multiply": {
+        "obligations": 0,
+        "avgLeverage": null,
+        "rows": 0
+      }
+    },
+    {
+      "symbol": "GOOGLx",
+      "name": "Alphabet xStock",
+      "mint": "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN",
+      "tokenProgram": "Token-2022",
+      "extensions": [
+        "metadataPointer",
+        "permanentDelegate",
+        "defaultAccountState",
+        "scaledUiAmountConfig",
+        "pausableConfig",
+        "confidentialTransferMint",
+        "transferHook",
+        "tokenMetadata"
+      ],
+      "uiMultiplier": {
+        "current": 1.0023772500603487,
+        "effectiveSince": "2026-09-04T00:30:00.000Z",
+        "pending": null
+      },
+      "priceUsd": 343.1838991031616,
+      "loanToValuePct": 60,
+      "liquidationThresholdPct": 70,
+      "depositedTokens": 9008.69105272,
+      "depositedUsd": 3091637.721288215,
+      "multiply": {
+        "obligations": 0,
+        "avgLeverage": null,
+        "rows": 0
+      }
+    },
+    {
+      "symbol": "CRCLx",
+      "name": "Circle xStock",
+      "mint": "XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1",
+      "tokenProgram": "Token-2022",
+      "extensions": [
+        "metadataPointer",
+        "permanentDelegate",
+        "defaultAccountState",
+        "scaledUiAmountConfig",
+        "pausableConfig",
+        "confidentialTransferMint",
+        "transferHook",
+        "tokenMetadata"
+      ],
+      "uiMultiplier": {
+        "current": 1,
+        "effectiveSince": null,
+        "pending": null
+      },
+      "priceUsd": 92.96,
+      "loanToValuePct": 30,
+      "liquidationThresholdPct": 40,
+      "depositedTokens": 11757.76333517,
+      "depositedUsd": 1093001.6796374032,
+      "multiply": {
+        "obligations": 0,
+        "avgLeverage": null,
+        "rows": 0
+      }
+    },
+    {
+      "symbol": "TSLAx",
+      "name": "Tesla xStock",
+      "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+      "tokenProgram": "Token-2022",
+      "extensions": [
+        "metadataPointer",
+        "permanentDelegate",
+        "defaultAccountState",
+        "scaledUiAmountConfig",
+        "pausableConfig",
+        "confidentialTransferMint",
+        "transferHook",
+        "tokenMetadata"
+      ],
+      "uiMultiplier": {
+        "current": 1,
+        "effectiveSince": null,
+        "pending": null
+      },
+      "priceUsd": 377.68,
+      "loanToValuePct": 55.00000000000001,
+      "liquidationThresholdPct": 65,
+      "depositedTokens": 7572.45490068255,
+      "depositedUsd": 2859964.7668897854,
+      "multiply": {
+        "obligations": 11,
+        "avgLeverage": 1.5246876941367382,
+        "rows": 1
+      }
+    },
+    {
+      "symbol": "NVDAx",
+      "name": "NVIDIA xStock",
+      "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh",
+      "tokenProgram": "Token-2022",
+      "extensions": [
+        "metadataPointer",
+        "permanentDelegate",
+        "defaultAccountState",
+        "scaledUiAmountConfig",
+        "pausableConfig",
+        "confidentialTransferMint",
+        "transferHook",
+        "tokenMetadata"
+      ],
+      "uiMultiplier": {
+        "current": 1.001701196801074,
+        "effectiveSince": "2026-09-10T00:30:00.000Z",
+        "pending": null
+      },
+      "priceUsd": 224.93701224766517,
+      "loanToValuePct": 55.00000000000001,
+      "liquidationThresholdPct": 65,
+      "depositedTokens": 11538.695854497546,
+      "depositedUsd": 2595479.770745198,
+      "multiply": {
+        "obligations": 1,
+        "avgLeverage": 1.343711859701996,
+        "rows": 1
+      }
+    },
+    {
+      "symbol": "METAx",
+      "name": "Meta xStock",
+      "mint": "Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu",
+      "tokenProgram": "Token-2022",
+      "extensions": [
+        "metadataPointer",
+        "permanentDelegate",
+        "defaultAccountState",
+        "scaledUiAmountConfig",
+        "pausableConfig",
+        "confidentialTransferMint",
+        "transferHook",
+        "tokenMetadata"
+      ],
+      "uiMultiplier": {
+        "current": 1.0028515433272898,
+        "effectiveSince": "2026-09-19T00:30:00.000Z",
+        "pending": null
+      },
+      "priceUsd": 779.6669323598014,
+      "loanToValuePct": 35,
+      "liquidationThresholdPct": 45,
+      "depositedTokens": 0.001,
+      "depositedUsd": 0.7796669323598014,
+      "multiply": {
+        "obligations": 0,
+        "avgLeverage": null,
+        "rows": 0
+      }
+    },
+    {
+      "symbol": "AAPLx",
+      "name": "Apple xStock",
+      "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+      "tokenProgram": "Token-2022",
+      "extensions": [
+        "metadataPointer",
+        "permanentDelegate",
+        "defaultAccountState",
+        "scaledUiAmountConfig",
+        "pausableConfig",
+        "confidentialTransferMint",
+        "transferHook",
+        "tokenMetadata"
+      ],
+      "uiMultiplier": {
+        "current": 1.0032690125398187,
+        "effectiveSince": "2026-08-08T00:30:00.000Z",
+        "pending": null
+      },
+      "priceUsd": 336.9880286219997,
+      "loanToValuePct": 40,
+      "liquidationThresholdPct": 50,
+      "depositedTokens": 1354.90225659,
+      "depositedUsd": 456585.8404237629,
+      "multiply": {
+        "obligations": 0,
+        "avgLeverage": null,
+        "rows": 0
+      }
+    },
+    {
+      "symbol": "MSTRx",
+      "name": "MicroStrategy xStock",
+      "mint": "XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ",
+      "tokenProgram": "Token-2022",
+      "extensions": [
+        "metadataPointer",
+        "permanentDelegate",
+        "defaultAccountState",
+        "scaledUiAmountConfig",
+        "pausableConfig",
+        "confidentialTransferMint",
+        "transferHook",
+        "tokenMetadata"
+      ],
+      "uiMultiplier": {
+        "current": 1,
+        "effectiveSince": null,
+        "pending": null
+      },
+      "priceUsd": 161.56,
+      "loanToValuePct": 30,
+      "liquidationThresholdPct": 40,
+      "depositedTokens": 29643.79352998,
+      "depositedUsd": 4789251.282703569,
+      "multiply": {
+        "obligations": 0,
+        "avgLeverage": null,
+        "rows": 0
+      }
+    }
+  ],
+  "solana": {
+    "xStockReservesLive": 10,
+    "strategyChecks": [
+      {
+        "name": "AAPLx borrow",
+        "unitsConsumed": 281443,
+        "slot": "450276575"
+      },
+      {
+        "name": "AAPLx borrow + earn",
+        "unitsConsumed": 344382,
+        "slot": "450276620"
+      },
+      {
+        "name": "SPYx Multiply",
+        "unitsConsumed": 439327,
+        "slot": "450276720"
+      },
+      {
+        "name": "TSLAx Multiply",
+        "unitsConsumed": 430611,
+        "slot": "450276810"
+      }
+    ],
+    "computeUnitsMin": 281443,
+    "computeUnitsMax": 439327,
+    "proofFeeLamports": 5000,
+    "solUsd": 116.21831591,
+    "proofFeeUsd": 0.0005810915795500001
+  }
+}
