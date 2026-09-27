@@ -17,7 +17,7 @@ import { VerificationLog } from "./VerificationLog";
  */
 const PYTH_STATUS = [
   { label: "Crypto majors (BTC, SOL, USDC)", value: "Reachable, confirmed", tone: "positive" },
-  { label: "Equity + xStock feeds", value: "Blocked — entitlement pending", tone: "clay" },
+  { label: "Equity + xStock feeds", value: "Blocked, entitlement pending", tone: "clay" },
   { label: "Degradation path", value: "Built and tested", tone: "positive" },
 ] as const;
 

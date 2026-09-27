@@ -219,3 +219,14 @@ body .wallet-adapter-modal-button-close {
 body .wallet-adapter-modal-button-close:focus-visible {
   outline-color: var(--color-gold);
 }
+
+/* Trade concept page: a new simulated fill slides in at the top of the tape. Motion is skipped entirely for
+   visitors who prefer reduced motion (the simulation also doesn't tick for them). */
+@keyframes tape-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+.tape-row { animation: tape-in 0.35s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .tape-row { animation: none; }
+}

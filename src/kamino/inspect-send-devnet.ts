@@ -35,7 +35,7 @@ import {
   deserializeFromTransport,
   submitSignedTransaction,
   confirmTransaction,
-} from "./execute.js";
+} from "./execute";
 
 const DEVNET_RPC = "https://api.devnet.solana.com";
 const MIN_BALANCE_LAMPORTS = 1_000_000n; // 0.001 SOL — ~200 transaction fees

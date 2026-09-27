@@ -6,7 +6,7 @@
  * This script exists so that once it is, verifying it works is one command.
  */
 import "dotenv/config";
-import { PythFeedClient } from "./feeds.js";
+import { PythFeedClient } from "./feeds";
 
 async function main() {
   const hermesUrl = process.env.PYTH_HERMES_URL ?? "https://hermes.pyth.network";

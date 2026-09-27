@@ -8,9 +8,9 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "PRODUCT",
     links: [
-      { label: "Portfolio", href: "#portfolio" },
-      { label: "Earn", href: "#earn" },
-      { label: "Borrow", href: "#borrow" },
+      { label: "Portfolio", href: "/portfolio" },
+      { label: "Earn", href: "/earn" },
+      { label: "Borrow", href: "/borrow" },
       { label: "Trade (concept)", href: "/trade" },
     ],
   },
@@ -56,7 +56,7 @@ function FooterLinkItem({ link }: { link: FooterLink }) {
  * Dark three-column footer. Below md everything stacks in one centered column (logo/tagline
  * first); md–lg keeps the logo block above a row of three columns; lg+ puts them side by side.
  */
-export function Footer() {
+export function Footer({ emDash = false }: { emDash?: boolean } = {}) {
   return (
     <footer className="bg-charcoal">
       <div className="mx-auto max-w-[1440px] px-4 pb-10 pt-16 md:px-10 xl:px-14">
@@ -66,8 +66,9 @@ export function Footer() {
               <Logo tone="dark" size="sm" href="/" />
             </div>
             <p className="m-0 font-serif text-sm leading-[1.6] text-ink-faint">
-              Earn yield, borrow against your stock portfolio, every proposal checked against real Kamino and Pyth data
-              before it&apos;s shown to you.
+              {emDash
+                ? "Earn yield, borrow against your stock portfolio, every proposal checked against real Kamino and Pyth data before it’s shown to you."
+                : "Earn yield, borrow against your stock portfolio, every proposal checked against real Kamino and Pyth data before it’s shown to you."}
             </p>
           </div>
 

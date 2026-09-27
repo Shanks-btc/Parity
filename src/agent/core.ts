@@ -8,12 +8,12 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import { KaminoClient, type AssetCapabilities } from "../kamino/client.js";
-import { withRpcRetry } from "../kamino/rpc-retry.js";
-import { PythFeedClient } from "../pyth/feeds.js";
-import { findUngroundedCapabilityClaims } from "./grounding.js";
-import { tools } from "./tools.js";
-import { StrategyValidator, strategyFingerprint, type StrategyInput, type ValidationResult } from "./validate.js";
+import { KaminoClient, type AssetCapabilities } from "../kamino/client";
+import { withRpcRetry } from "../kamino/rpc-retry";
+import { PythFeedClient } from "../pyth/feeds";
+import { findUngroundedCapabilityClaims } from "./grounding";
+import { tools } from "./tools";
+import { StrategyValidator, strategyFingerprint, type StrategyInput, type ValidationResult } from "./validate";
 
 const SYSTEM_PROMPT = `You are Parity, an onchain prime brokerage agent for tokenized equities (xStocks) on Solana.
 

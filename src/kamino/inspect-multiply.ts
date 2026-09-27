@@ -6,7 +6,7 @@
  * anything is built on top of it.
  */
 import "dotenv/config";
-import { KaminoClient } from "./client.js";
+import { KaminoClient } from "./client";
 
 async function main() {
   const rpcUrl = process.env.SOLANA_RPC_URL;

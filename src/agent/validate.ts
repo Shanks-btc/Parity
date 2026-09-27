@@ -13,9 +13,9 @@ import { address, type Instruction } from "@solana/kit";
 import { createNoopSigner } from "@solana/signers";
 import Decimal from "decimal.js";
 import { KaminoAction as KaminoActionClass, KaminoObligation, type KaminoAction } from "@kamino-finance/klend-sdk";
-import type { KaminoClient, WalletPosition } from "../kamino/client.js";
-import { buildUnsignedTransactionFromInstructions, simulate, type SimulationResult } from "../kamino/execute.js";
-import { isTransientNetworkError } from "../kamino/rpc-retry.js";
+import type { KaminoClient, WalletPosition } from "../kamino/client";
+import { buildUnsignedTransactionFromInstructions, serializeForTransport, simulate, type SimulationResult } from "../kamino/execute";
+import { isTransientNetworkError } from "../kamino/rpc-retry";
 
 export type StrategyType = "borrow" | "borrow_and_earn" | "earn" | "multiply";
 
@@ -55,6 +55,12 @@ export interface ValidationResult {
     depositedSymbols: string[];
     walletBalances: WalletPosition["walletBalances"];
   };
+  /**
+   * The exact unsigned transaction that was simulated (base64 wire format), only when requested via
+   * `validate(..., { includeTransaction: true })` AND the simulation succeeded. A wallet signs this one,
+   * so what the user is shown and what they sign cannot differ.
+   */
+  transaction?: { base64: string; lastValidBlockHeight: string };
 }
 
 const COMPUTE_BUDGET_PROGRAM = "ComputeBudget111111111111111111111111111111";
@@ -131,7 +137,11 @@ export class StrategyValidator {
 
   constructor(private kamino: KaminoClient) {}
 
-  async validate(walletAddress: string, strategy: StrategyInput): Promise<ValidationResult> {
+  async validate(
+    walletAddress: string,
+    strategy: StrategyInput,
+    options: { includeTransaction?: boolean } = {}
+  ): Promise<ValidationResult> {
     const validationId = `val-${Date.now().toString(36)}-${++this.counter}`;
     const position = await this.kamino.getPosition(walletAddress);
 
@@ -152,42 +162,10 @@ export class StrategyValidator {
     if (problems.length > 0) return reject(problems);
 
     // ---- Build every leg with the real Phase 2–4 builders ----
-    const owner = createNoopSigner(address(walletAddress));
     let ixs: Instruction[];
     let lookupTables;
     try {
-      if (strategy.strategyType === "multiply") {
-        const built = await this.kamino.buildMultiplyDepositTx(
-          owner,
-          strategy.newDepositSymbol!,
-          new Decimal(strategy.newDepositAmount!),
-          new Decimal(strategy.targetLeverage!)
-        );
-        ixs = built.ixs;
-        lookupTables = built.lookupTables;
-      } else {
-        const actions: KaminoAction[] = [];
-        if (strategy.strategyType !== "earn") {
-          const borrowMint = this.kamino.getReserve(strategy.borrowSymbol!).getLiquidityMint();
-          const action = strategy.newDepositSymbol
-            ? await this.kamino.buildDepositAndBorrowTx(
-                owner,
-                this.kamino.getReserve(strategy.newDepositSymbol).getLiquidityMint(),
-                new Decimal(strategy.newDepositAmount!),
-                borrowMint,
-                new Decimal(strategy.borrowAmount!)
-              )
-            : await this.kamino.buildBorrowTx(owner, borrowMint, new Decimal(strategy.borrowAmount!));
-          actions.push(action);
-        }
-        if (strategy.strategyType === "earn" || strategy.strategyType === "borrow_and_earn") {
-          const earnMint = this.kamino.getReserve(strategy.earnSymbol!).getLiquidityMint();
-          actions.push(await this.kamino.buildSupplyTx(owner, earnMint, new Decimal(strategy.earnAmount!)));
-        }
-        ixs = mergeActions(actions);
-        const marketLut = await this.kamino.getMarketLookupTable();
-        lookupTables = marketLut ? [marketLut] : [];
-      }
+      ({ ixs, lookupTables } = await this.buildInstructions(walletAddress, strategy));
     } catch (err) {
       if (isTransientNetworkError(err)) throw err; // not a verdict on the strategy — let the caller retry
       return {
@@ -201,9 +179,16 @@ export class StrategyValidator {
 
     // ---- Simulate the whole strategy atomically against live mainnet state ----
     let sim: SimulationResult;
+    let transaction: ValidationResult["transaction"];
     try {
       const tx = await buildUnsignedTransactionFromInstructions(this.kamino.getRpc(), ixs, walletAddress, lookupTables);
       sim = await simulate(this.kamino.getRpc(), tx);
+      if (options.includeTransaction && sim.success && "lifetimeConstraint" in tx) {
+        transaction = {
+          base64: serializeForTransport(tx),
+          lastValidBlockHeight: String((tx.lifetimeConstraint as { lastValidBlockHeight: bigint }).lastValidBlockHeight),
+        };
+      }
     } catch (err) {
       if (isTransientNetworkError(err)) throw err;
       // e.g. the compiled transaction exceeds Solana's size limit — the RPC rejects it outright.
@@ -231,7 +216,45 @@ export class StrategyValidator {
         keyLogs: keyLogs(sim),
       },
       projectedHealthFactor,
+      ...(transaction ? { transaction } : {}),
     };
+  }
+
+  /**
+   * Compiles every leg of a (structurally valid) strategy into one ordered instruction list plus the
+   * lookup tables it needs. Shared by validate() and by the dashboard's build-transaction route, so the
+   * transaction a wallet is asked to sign is built by exactly the code that was simulated.
+   */
+  private async buildInstructions(walletAddress: string, strategy: StrategyInput) {
+    const owner = createNoopSigner(address(walletAddress));
+    if (strategy.strategyType === "multiply") {
+      return this.kamino.buildMultiplyDepositTx(
+        owner,
+        strategy.newDepositSymbol!,
+        new Decimal(strategy.newDepositAmount!),
+        new Decimal(strategy.targetLeverage!)
+      );
+    }
+    const actions: KaminoAction[] = [];
+    if (strategy.strategyType !== "earn") {
+      const borrowMint = this.kamino.getReserve(strategy.borrowSymbol!).getLiquidityMint();
+      const action = strategy.newDepositSymbol
+        ? await this.kamino.buildDepositAndBorrowTx(
+            owner,
+            this.kamino.getReserve(strategy.newDepositSymbol).getLiquidityMint(),
+            new Decimal(strategy.newDepositAmount!),
+            borrowMint,
+            new Decimal(strategy.borrowAmount!)
+          )
+        : await this.kamino.buildBorrowTx(owner, borrowMint, new Decimal(strategy.borrowAmount!));
+      actions.push(action);
+    }
+    if (strategy.strategyType === "earn" || strategy.strategyType === "borrow_and_earn") {
+      const earnMint = this.kamino.getReserve(strategy.earnSymbol!).getLiquidityMint();
+      actions.push(await this.kamino.buildSupplyTx(owner, earnMint, new Decimal(strategy.earnAmount!)));
+    }
+    const marketLut = await this.kamino.getMarketLookupTable();
+    return { ixs: mergeActions(actions), lookupTables: marketLut ? [marketLut] : [] };
   }
 
   /** Field/capability/claim checks. These catch nonsense cheaply; the simulation is the real test. */

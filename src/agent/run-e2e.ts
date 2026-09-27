@@ -12,9 +12,9 @@
  */
 import "dotenv/config";
 import { writeFileSync } from "node:fs";
-import { KaminoClient } from "../kamino/client.js";
-import { PythFeedClient } from "../pyth/feeds.js";
-import { ParityAgent, type ToolCallEvent } from "./core.js";
+import { KaminoClient } from "../kamino/client";
+import { PythFeedClient } from "../pyth/feeds";
+import { ParityAgent, type ToolCallEvent } from "./core";
 
 const SCENARIOS = [
   {

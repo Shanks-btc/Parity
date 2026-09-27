@@ -14,9 +14,9 @@
  */
 import "dotenv/config";
 import readline from "node:readline/promises";
-import { KaminoClient } from "../kamino/client.js";
-import { PythFeedClient } from "../pyth/feeds.js";
-import { ParityAgent } from "./core.js";
+import { KaminoClient } from "../kamino/client";
+import { PythFeedClient } from "../pyth/feeds";
+import { ParityAgent } from "./core";
 
 /** Unwraps Anthropic SDK / Pyth / generic errors to one readable line instead of a raw dump. */
 function formatError(err: unknown): string {

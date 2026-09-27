@@ -24,9 +24,9 @@ import "dotenv/config";
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { address, createSolanaRpc, devnet, type Signature } from "@solana/kit";
-import { KaminoClient } from "../src/kamino/client.js";
-import { withRpcRetry } from "../src/kamino/rpc-retry.js";
-import { StrategyValidator, type StrategyInput } from "../src/agent/validate.js";
+import { KaminoClient } from "../src/kamino/client";
+import { withRpcRetry } from "../src/kamino/rpc-retry";
+import { StrategyValidator, type StrategyInput } from "../src/agent/validate";
 
 const OUT = fileURLToPath(new URL("../dashboard/lib/market-snapshot.json", import.meta.url));
 

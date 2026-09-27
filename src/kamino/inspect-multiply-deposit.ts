@@ -11,8 +11,8 @@ import "dotenv/config";
 import { address } from "@solana/kit";
 import { createNoopSigner } from "@solana/signers";
 import Decimal from "decimal.js";
-import { KaminoClient } from "./client.js";
-import { buildUnsignedTransactionFromInstructions, simulate } from "./execute.js";
+import { KaminoClient } from "./client";
+import { buildUnsignedTransactionFromInstructions, simulate } from "./execute";
 
 // Known SPYx Multiply obligors from earlier verification (their SPYx is likely already
 // deposited as Kamino collateral, so spot balance is a long shot, but cheap to check first) —

@@ -30,7 +30,8 @@ export default function LandingPage() {
         <FAQ />
         <ClosingCTA />
       </main>
-      <Footer />
+      {/* emDash: the landing copy uses em-dashes where commas would go; the same footer on other pages is unchanged. */}
+      <Footer emDash />
       <ScrollReveal />
     </div>
   );

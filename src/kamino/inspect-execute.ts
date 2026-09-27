@@ -9,8 +9,8 @@ import "dotenv/config";
 import { address } from "@solana/kit";
 import { createNoopSigner } from "@solana/signers";
 import Decimal from "decimal.js";
-import { KaminoClient } from "./client.js";
-import { buildUnsignedTransaction, simulate } from "./execute.js";
+import { KaminoClient } from "./client";
+import { buildUnsignedTransaction, simulate } from "./execute";
 
 const CANDIDATE_WALLET = "Gm1mMs1Bs5imsbSMPoAFFCAcQHuBsZPmTeEE3uKRNLG2"; // known Vanilla obligor — its collateral is MSTRx, not AAPLx (per-reserve data, Phase 3/5)
 

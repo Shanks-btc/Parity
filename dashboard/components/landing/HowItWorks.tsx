@@ -35,7 +35,7 @@ export function HowItWorks() {
           </div>
           <StepTitle>Connect.</StepTitle>
           <StepBody>
-            Parity reads your real Kamino position — what you hold, what you&apos;ve borrowed, and your current health
+            Parity reads your real Kamino position, what you hold, what you&apos;ve borrowed, and your current health
             factor. Nothing is asked of you that it can check itself.
           </StepBody>
         </StepCard>
@@ -46,7 +46,7 @@ export function HowItWorks() {
           </div>
           <StepTitle>State your intent.</StepTitle>
           <StepBody>
-            Plain language — &ldquo;I want yield without selling my AAPLx.&rdquo; No strategy picker, no menu of products
+            Plain language, &ldquo;I want yield without selling my AAPLx.&rdquo; No strategy picker, no menu of products
             to interpret yourself.
           </StepBody>
         </StepCard>
@@ -57,10 +57,10 @@ export function HowItWorks() {
           </div>
           <div className="flex flex-col gap-6 md:flex-row md:gap-10">
             <div className="flex-1">
-              <StepTitle>Verify — before anything is shown to you.</StepTitle>
+              <StepTitle>Verify, before anything is shown to you.</StepTitle>
               <StepBody>
                 Three checks run against real infrastructure before a proposal is ever assembled. If any of them
-                can&apos;t be confirmed, the agent sizes conservatively and says so — it doesn&apos;t guess.
+                can&apos;t be confirmed, the agent sizes conservatively and says so, it doesn&apos;t guess.
               </StepBody>
             </div>
             <div className="flex-1 overflow-hidden rounded-[10px] border border-line md:self-start">
@@ -86,7 +86,7 @@ export function HowItWorks() {
           </div>
           <StepTitle>Review, then sign.</StepTitle>
           <StepBody className="max-w-[640px]">
-            You see the exact numbers and every risk — including a stale or unavailable price feed — before approving
+            You see the exact numbers and every risk, including a stale or unavailable price feed, before approving
             anything. Nothing executes without your signature.
           </StepBody>
         </StepCard>

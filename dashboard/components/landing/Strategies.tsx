@@ -1,14 +1,17 @@
 import type { ReactNode } from "react";
-import { Mono } from "../Mono";
+import { CountUp } from "../CountUp";
 import { ArrowRightIcon, ChevronIcon, HouseIcon, StackIcon, TrendIcon } from "../icons";
 import {
   allAssets,
   borrowApyLabel,
+  carryLabel,
+  carryNegative,
+  carryNote,
+  LANDING_SEP,
   listJoin,
   market,
   multiplyLiveAssets,
   multiplyNotLiveAssets,
-  signedPct,
 } from "@/lib/market";
 import { Section, SectionTitle } from "./Section";
 
@@ -27,16 +30,14 @@ interface Strategy {
 
 // Figures come from market-snapshot.json (`npm run snapshot:landing`), verified live against
 // Kamino mainnet at market.checkedAt — a snapshot, not a feed, and labelled that way.
-const { usdc } = market;
-const carryNegative = usdc.netCarryPct < 0;
 
 // Multiply covers every asset with live Kamino Multiply positions (SPYx and TSLAx as of the last
 // snapshot; Parity's own builder simulated both successfully on mainnet on 2026-09-24). Derived,
 // so the card can't claim one asset "only" when another goes live, as "SPYx only" once did.
 const multiplyLive = multiplyLiveAssets.map((s) => ({ symbol: s, ...market.assets[s].multiply }));
 const multiplyScope =
-  `Live for ${listJoin(multiplyLiveAssets)}` +
-  (multiplyNotLiveAssets.length ? `; not yet for ${listJoin(multiplyNotLiveAssets)}.` : ".");
+  `Live for ${listJoin(multiplyLiveAssets, "and", LANDING_SEP)}` +
+  (multiplyNotLiveAssets.length ? `; not yet for ${listJoin(multiplyNotLiveAssets, "and", LANDING_SEP)}.` : ".");
 
 const STRATEGIES: Strategy[] = [
   {
@@ -45,11 +46,11 @@ const STRATEGIES: Strategy[] = [
     // the Capabilities section below.
     pill: { label: "COLLATERAL-BACKED", tone: "neutral" },
     title: "Borrow against your stock",
-    body: `Unlock USDC without selling your ${listJoin(allAssets, "or")}. The agent sizes explicitly against each asset's real liquidation threshold.`,
+    body: `Unlock USDC without selling your ${listJoin(allAssets, "or", LANDING_SEP)}. The agent sizes explicitly against each asset's real liquidation threshold.`,
     // A cost the user pays — neutral ink, not green. Green is reserved for figures that are
     // genuinely positive for the user (cf. the carry card's sign-following tone).
     stat: { label: "BORROW APY, AS OF LAST CHECK", value: borrowApyLabel, tone: "ink" },
-    link: { href: "#borrow", label: "Go to Borrow" },
+    link: { href: "/borrow", label: "Go to Borrow" },
   },
   {
     icon: <TrendIcon />,
@@ -59,29 +60,27 @@ const STRATEGIES: Strategy[] = [
       ? { label: "NEGATIVE CARRY", tone: "clay" }
       : { label: "POSITIVE CARRY", tone: "positive" },
     title: "Redeposit to earn",
-    body: "Borrowed USDC goes into Kamino's own stablecoin pool instead of sitting idle — the same infrastructure, not a separate vault.",
+    body: "Borrowed USDC goes into Kamino's own stablecoin pool instead of sitting idle, the same infrastructure, not a separate vault.",
     stat: {
       label: "NET CARRY, AS OF LAST CHECK",
-      value: signedPct(usdc.netCarryPct),
+      value: carryLabel,
       tone: carryNegative ? "clay" : "positive",
     },
-    note: carryNegative
-      ? "Parity's agent won't recommend this until the math turns positive — it isn't right now."
-      : "Supply APY currently exceeds borrow APY — the agent can consider this, sized conservatively.",
-    link: { href: "#earn", label: "Go to Earn" },
+    note: carryNote,
+    link: { href: "/earn/redeposit", label: "Go to Earn" },
   },
   {
     icon: <StackIcon />,
     pill: { label: "LEVERAGED", tone: "clay" },
     title: `Multiply on ${multiplyLiveAssets.join(" & ")}`,
-    body: `Add to a live, Kamino-managed leveraged position — their rebalancing, not ours. ${multiplyScope}`,
+    body: `Add to a live, Kamino-managed leveraged position, their rebalancing, not ours. ${multiplyScope}`,
     stat: {
       // Values follow the title's asset order (e.g. "SPYx & TSLAx" → "2.04x / 1.52x").
       label: `AVG. LEVERAGE (${multiplyLive.map((m) => m.obligations).join(" / ")} POSITIONS)`,
       value: multiplyLive.map((m) => `${(m.avgLeverage ?? 0).toFixed(2)}x`).join(" / "),
       tone: "gold",
     },
-    link: { href: "#earn", label: "Go to Earn (Multiply)" },
+    link: { href: "/earn/multiply", label: "Go to Earn (Multiply)" },
   },
 ];
 
@@ -106,9 +105,7 @@ function StrategyCard({ s }: { s: Strategy }) {
       <div className="flex items-end justify-between gap-3 border-t border-line-soft pt-4">
         <div>
           <div className="mb-1 font-mono text-[10px] text-ink-faint">{s.stat.label}</div>
-          <Mono as="div" className={`text-[22px] ${STAT_TONE[s.stat.tone]}`}>
-            {s.stat.value}
-          </Mono>
+          <CountUp className={`font-mono text-[22px] ${STAT_TONE[s.stat.tone]}`}>{s.stat.value}</CountUp>
         </div>
         <a
           href={s.link.href}
@@ -139,7 +136,7 @@ export function Strategies() {
           {(
             [
               ["left", "Previous strategies (only three exist right now)"],
-              ["right", "More strategies (none yet — three shown are all that's built)"],
+              ["right", "More strategies (none yet, three shown are all that's built)"],
             ] as const
           ).map(([dir, label]) => (
             <button

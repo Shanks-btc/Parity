@@ -47,7 +47,7 @@ export function VerificationLog() {
     <div className="overflow-hidden rounded-xl border border-ink">
       <div className="flex items-center justify-between gap-3 bg-ink px-4 py-4 md:px-6">
         <h3 id="verification-log-title" className="m-0 font-mono text-[11px] font-normal tracking-[0.05em] text-term-text">
-          VERIFICATION LOG — REAL DEFECTS, REAL FIXES
+          VERIFICATION LOG, REAL DEFECTS, REAL FIXES
         </h3>
         <span className="shrink-0 font-mono text-[10px] text-ink-faint">
           {ENTRIES.length} OF {ENTRIES.length} RESOLVED

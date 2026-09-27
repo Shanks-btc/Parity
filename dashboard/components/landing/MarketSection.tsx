@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { checkedAtLabel, market } from "@/lib/market";
+import { market } from "@/lib/market";
 import { Mono } from "../Mono";
 import { SectionTitle } from "./Section";
 
@@ -24,14 +24,14 @@ const maxDeposits = Math.max(...rows.map((r) => r.depositedUsd));
 const usdCompact = (n: number) =>
   n >= 1e6 ? `$${(n / 1e6).toFixed(2)}M` : n >= 1e3 ? `$${(n / 1e3).toFixed(1)}K` : `$${n.toFixed(0)}`;
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const multiplier = (x: XStock) => (x.uiMultiplier ? x.uiMultiplier.current.toFixed(6) : "—");
+const multiplier = (x: XStock) => (x.uiMultiplier ? x.uiMultiplier.current.toFixed(6) : ", ");
 const multiplierChange = (x: XStock) => (x.uiMultiplier ? (x.uiMultiplier.current - 1) * 100 : 0);
 const multiplierSince = (x: XStock) =>
   x.uiMultiplier?.effectiveSince
-    ? new Date(x.uiMultiplier.effectiveSince).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })
+    ? new Date(x.uiMultiplier.effectiveSince).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).replace(",", ", ")
     : "Unchanged since launch";
 const multiplyLabel = (x: XStock) =>
-  x.multiply.obligations > 0 ? `${x.multiply.obligations} · ${(x.multiply.avgLeverage ?? 0).toFixed(2)}x` : "—";
+  x.multiply.obligations > 0 ? `${x.multiply.obligations} · ${(x.multiply.avgLeverage ?? 0).toFixed(2)}x` : ", ";
 const shortMint = (mint: string) => `${mint.slice(0, 3)}…${mint.slice(-4)}`;
 
 /** Token-2022 extension ids → readable chip labels. */
@@ -79,7 +79,7 @@ function MarketTable({ selected, onSelect }: { selected: string; onSelect: (s: s
         <div>
           <div className="mb-2 flex items-center gap-2 font-mono text-[11px] text-gold">
             <LiveDot />
-            Read from Solana mainnet · {checkedAtLabel()}
+            Read from Solana mainnet
           </div>
           <h3 className="m-0 font-serif text-xl font-semibold text-term-text">Every xStock in Kamino&apos;s market</h3>
         </div>
@@ -216,7 +216,7 @@ function AssetDetail({ x }: { x: XStock }) {
       </ul>
 
       <p className="mb-0 mt-4 font-serif text-[13px] leading-[1.6] text-term-muted">
-        This multiplier is set by the token&apos;s issuer. Wallets display raw balance × multiplier; Kamino — and Parity — work in
+        This multiplier is set by the token&apos;s issuer. Wallets display raw balance × multiplier; Kamino, and Parity, work in
         raw units, so deposits are sized from the raw amount.
       </p>
     </aside>
@@ -226,17 +226,17 @@ function AssetDetail({ x }: { x: XStock }) {
 const EXPLAINERS = [
   {
     title: "Collateral that's native to the chain",
-    body: `All ${rows.length} xStocks in this market are Token-2022 mints on Solana, and Kamino lends against them directly — the asset you borrow against is the token itself, not a wrapper around it.`,
+    body: `All ${rows.length} xStocks in this market are Token-2022 mints on Solana, and Kamino lends against them directly, the asset you borrow against is the token itself, not a wrapper around it.`,
     icon: "M4 7h16M4 12h16M4 17h10",
   },
   {
     title: "A balance your wallet can't show you",
-    body: "Wallets display raw balance × multiplier, but Kamino moves raw units. Sizing from the displayed figure once failed a real mainnet simulation with “insufficient funds” — Parity sizes from the raw amount.",
+    body: "Wallets display raw balance × multiplier, but Kamino moves raw units. Sizing from the displayed figure once failed a real mainnet simulation with “insufficient funds”, Parity sizes from the raw amount.",
     icon: "M12 3v18M5 8h14M7 16h10",
   },
   {
     title: "One transaction, several protocols",
-    body: "A Multiply position composes a Kamino flash loan, a Jupiter swap and a deposit + borrow atomically — and is simulated on mainnet before it's ever proposed to you.",
+    body: "A Multiply position composes a Kamino flash loan, a Jupiter swap and a deposit + borrow atomically, and is simulated on mainnet before it's ever proposed to you.",
     icon: "M13 3L5 14h6l-1 7 8-11h-6l1-7z",
   },
 ];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { borrowApyLabel, listJoin, market, pct, signedPct } from "@/lib/market";
+import { LANDING_SEP, borrowApyLabel, listJoin, market, pct, signedPct } from "@/lib/market";
 import { Mono } from "../Mono";
 
 /*
@@ -24,9 +24,10 @@ const FAQS: { q: string; a: ReactNode }[] = [
     q: "What is Parity?",
     a: (
       <>
-        An agent that helps you earn yield or borrow against tokenized stocks (xStocks) on Solana, using Kamino Lend&apos;s
-        xStocks market. You say what you want in plain language; Parity reads your real position, checks what that asset
-        actually supports, simulates the exact transaction on mainnet, and only then proposes it — for you to sign.
+        Parity is a prime brokerage rebuilt for the internet, unlock yield, leverage, and liquidity from your stock
+        portfolio on Solana. Today, that means borrowing against or earning yield on tokenized stocks (xStocks) via Kamino
+        Lend: pick an asset, supply it as collateral, borrow or deposit. An agent runs underneath every action, checking
+        your real position and verifying the transaction against real mainnet state before you sign.
       </>
     ),
   },
@@ -35,7 +36,7 @@ const FAQS: { q: string; a: ReactNode }[] = [
     a: (
       <>
         No. Parity never holds your keys or your assets. Every transaction is built unsigned, and the only way it goes
-        through is you signing it in your own wallet — Parity&apos;s send step accepts nothing that your wallet hasn&apos;t
+        through is you signing it in your own wallet, Parity&apos;s send step accepts nothing that your wallet hasn&apos;t
         already signed.
       </>
     ),
@@ -44,9 +45,9 @@ const FAQS: { q: string; a: ReactNode }[] = [
     q: "Which stocks can I use?",
     a: (
       <>
-        Kamino&apos;s xStocks market lists {xstockSymbols.length} tokenized stocks: {listJoin(xstockSymbols)}. Borrow and
-        Earn work the same way for each. Multiply is only offered where Kamino has live Multiply positions — right now{" "}
-        {listJoin(multiplyLive)} — and never proposed anywhere else.
+        Kamino&apos;s xStocks market lists {xstockSymbols.length} tokenized stocks: {listJoin(xstockSymbols, "and", LANDING_SEP)}. Borrow and
+        Earn work the same way for each. Multiply is only offered where Kamino has live Multiply positions, right now{" "}
+        {listJoin(multiplyLive, "and", LANDING_SEP)}, and never proposed anywhere else.
       </>
     ),
   },
@@ -54,7 +55,7 @@ const FAQS: { q: string; a: ReactNode }[] = [
     q: "How much can I borrow, and when does liquidation happen?",
     a: (
       <>
-        Each asset has a loan-to-value limit (the most you can borrow against it) and a higher liquidation threshold — for
+        Each asset has a loan-to-value limit (the most you can borrow against it) and a higher liquidation threshold, for
         example AAPLx <N>{limits("AAPLx")}</N>, SPYx <N>{limits("SPYx")}</N>, TSLAx <N>{limits("TSLAx")}</N>. If your
         collateral&apos;s value falls far enough that your debt crosses the threshold, Kamino can liquidate part of it.
         Parity aims for a health factor of at least <N>1.5</N> and flags anything lower in plain language.
@@ -65,7 +66,7 @@ const FAQS: { q: string; a: ReactNode }[] = [
     q: "What does borrowing cost?",
     a: (
       <>
-        You pay Kamino&apos;s variable USDC borrow rate — <N>{borrowApyLabel}</N> APY as of the last check. It moves with
+        You pay Kamino&apos;s variable USDC borrow rate, <N>{borrowApyLabel}</N> APY as of the last check. It moves with
         how much of the pool is borrowed, so the proposal shows the rate at the moment it&apos;s made, not a fixed quote.
       </>
     ),
@@ -76,7 +77,7 @@ const FAQS: { q: string; a: ReactNode }[] = [
       usdc.netCarryPct < 0 ? (
         <>
           Because right now it loses money: borrowing USDC costs <N>{pct(usdc.borrowApyPct)}</N> while supplying it earns{" "}
-          <N>{pct(usdc.supplyApyPct)}</N> — a net carry of <N>{signedPct(usdc.netCarryPct)}</N> a year. The agent says so
+          <N>{pct(usdc.supplyApyPct)}</N>, a net carry of <N>{signedPct(usdc.netCarryPct)}</N> a year. The agent says so
           and suggests borrowing only for what you actually need. It will consider the earn leg once supply beats borrow.
         </>
       ) : (
@@ -91,7 +92,7 @@ const FAQS: { q: string; a: ReactNode }[] = [
     a: (
       <>
         A Kamino-managed leveraged position. In one transaction, a flash loan borrows USDC, a Jupiter swap turns it into
-        more of your stock, and everything is deposited as collateral — so you hold more exposure than you started with.
+        more of your stock, and everything is deposited as collateral, so you hold more exposure than you started with.
         Leverage amplifies losses as well as gains, and you pay the USDC borrow rate on the debt. Parity sizes it
         conservatively (e.g. <N>1.5×</N>).
       </>
@@ -103,7 +104,7 @@ const FAQS: { q: string; a: ReactNode }[] = [
       <>
         Parity cross-checks each xStock&apos;s price against Pyth&apos;s independent feed before sizing a position. Our
         API key doesn&apos;t yet carry entitlement for equity or xStock feeds, so that check currently returns unavailable.
-        When it does, the agent says so, lists it as a risk, and sizes the position smaller — it never pretends the check
+        When it does, the agent says so, lists it as a risk, and sizes the position smaller, it never pretends the check
         passed.
       </>
     ),
@@ -114,7 +115,7 @@ const FAQS: { q: string; a: ReactNode }[] = [
       <>
         xStocks are Token-2022 tokens with a scaled display: wallets show your raw balance × an issuer-set multiplier (AAPLx
         is currently <N>×{aaplx?.uiMultiplier?.current.toFixed(6)}</N>), but Kamino moves raw units. Parity sizes every
-        deposit from the raw amount — the displayed figure once failed a real simulation with “insufficient funds”.
+        deposit from the raw amount, the displayed figure once failed a real simulation with “insufficient funds”.
       </>
     ),
   },
@@ -124,7 +125,7 @@ const FAQS: { q: string; a: ReactNode }[] = [
       <>
         Parity checks your position, cross-checks a price before every proposal, that only works if checking is cheap.
         Reads are free, and a real transaction fee is <N>{solana.proofFeeLamports.toLocaleString("en-US")} lamports</N>{" "}
-        (about <N>${solana.proofFeeUsd.toFixed(4)}</N>). And the assets themselves — xStocks and Kamino&apos;s market for
+        (about <N>${solana.proofFeeUsd.toFixed(4)}</N>). And the assets themselves, xStocks and Kamino&apos;s market for
         them, already live here.
       </>
     ),

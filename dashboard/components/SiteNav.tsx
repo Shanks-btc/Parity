@@ -8,13 +8,12 @@ import { MenuIcon } from "./icons";
 type Tone = "light" | "dark";
 type NavKey = "portfolio" | "earn" | "borrow" | "trade";
 
-// Portfolio/Earn/Borrow have no screens yet (later phase) — kept as the mockup's hash links.
-// Trade points at the real /trade concept page this phase builds (the mockup had "#trade").
+// Every entry is a real route now (Earn, Borrow, Portfolio, and the Trade concept page).
 const LINKS: { key: NavKey; label: string; href: string }[] = [
-  { key: "earn", label: "Earn", href: "#earn" },
-  { key: "borrow", label: "Borrow", href: "#borrow" },
+  { key: "earn", label: "Earn", href: "/earn" },
+  { key: "borrow", label: "Borrow", href: "/borrow" },
   { key: "trade", label: "Trade", href: "/trade" },
-  { key: "portfolio", label: "Portfolio", href: "#portfolio" },
+  { key: "portfolio", label: "Portfolio", href: "/portfolio" },
 ];
 
 const TONES = {

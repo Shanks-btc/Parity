@@ -22,3 +22,6 @@ npm-debug.log*
 # Keypairs / wallets — just in case any test keypair files exist
 *.json.keypair
 keypair.json
+
+.claude/
+dashboard/lib/*.bak

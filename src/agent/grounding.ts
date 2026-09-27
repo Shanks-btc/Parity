@@ -16,7 +16,7 @@
  *     rephrase; a false negative is exactly the ungrounded claim this exists to stop.
  */
 
-import type { AssetCapabilities } from "../kamino/client.js";
+import type { AssetCapabilities } from "../kamino/client";
 
 type Capability = "Borrow" | "Earn" | "Multiply";
 

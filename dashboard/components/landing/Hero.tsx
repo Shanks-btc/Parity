@@ -1,3 +1,4 @@
+import { ExploreStrategiesButton } from "../wizard/WizardModal";
 import { ConnectWalletButton } from "../wallet/ConnectWalletButton";
 
 export function Hero() {
@@ -35,13 +36,8 @@ export function Hero() {
 
       <div className="z-[1] mt-2 flex w-full flex-col gap-3.5 sm:w-auto sm:flex-row">
         <ConnectWalletButton size="hero" />
-        {/* Navigation, so a link: jumps to the Strategies section (smooth scroll set in globals.css). */}
-        <a
-          href="#strategies"
-          className="w-full rounded-lg border border-line-strong bg-transparent px-7 py-4 text-center font-mono text-[15px] font-medium text-ink hover:border-gold-deep hover:text-gold-text sm:w-auto"
-        >
-          Explore Strategies
-        </a>
+        {/* Opens the intent wizard as a modal over this page (no navigation, no scroll to #strategies). */}
+        <ExploreStrategiesButton className="w-full cursor-pointer rounded-lg border border-line-strong bg-transparent px-7 py-4 text-center font-mono text-[15px] font-medium text-ink hover:border-gold-deep hover:text-gold-text sm:w-auto" />
       </div>
 
       <div className="z-[1] mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-[20px] bg-surface/70 px-4 py-1.5 font-mono text-xs tracking-[0.02em] text-ink-muted md:gap-7">

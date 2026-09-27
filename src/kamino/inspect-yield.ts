@@ -15,8 +15,8 @@ import "dotenv/config";
 import { address } from "@solana/kit";
 import { createNoopSigner } from "@solana/signers";
 import Decimal from "decimal.js";
-import { KaminoClient } from "./client.js";
-import { buildUnsignedTransaction, simulate } from "./execute.js";
+import { KaminoClient } from "./client";
+import { buildUnsignedTransaction, simulate } from "./execute";
 
 // A few real wallets already confirmed to exist on this market from earlier verification —
 // cheap to check via getTokenAccountsByOwner before falling back to an expensive full scan.

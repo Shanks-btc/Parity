@@ -56,7 +56,7 @@ export function WhySolanaPyth() {
           </div>
           <CardTitle>Speed and cost make constant verification possible.</CardTitle>
           <p className="mb-5 mt-0 font-serif text-[15px] leading-[1.6] text-ink-muted">
-            Every proposal starts with a real check against your position and the market — something that only makes
+            Every proposal starts with a real check against your position and the market, something that only makes
             sense at scale if it costs a fraction of a cent and confirms in under a second. That&apos;s the role Solana
             plays here: infrastructure Parity depends on for every single interaction, not a talking point.
           </p>
@@ -70,7 +70,7 @@ export function WhySolanaPyth() {
           <CardTitle>A second, independent price check before any position is sized.</CardTitle>
           <p className="mb-5 mt-0 font-serif text-[15px] leading-[1.6] text-ink-muted">
             Parity is built to cross-check an xStock&apos;s on-chain price against Pyth&apos;s real market feed before
-            recommending anything — catching a gap between the tokenized price and the underlying stock before it becomes
+            recommending anything, catching a gap between the tokenized price and the underlying stock before it becomes
             your problem.
           </p>
           {/* A plain mechanism list — no status claims. The honest entitlement status lives in the Proof section. */}

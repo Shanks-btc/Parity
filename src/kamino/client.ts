@@ -44,7 +44,7 @@ import {
 } from "@kamino-finance/klend-sdk";
 import { fetchAllAddressLookupTable, type AddressLookupTable } from "@solana-program/address-lookup-table";
 import Decimal from "decimal.js";
-import { createJupiterQuoter, createJupiterSwapper, type JupiterQuoteResponse } from "./jupiter.js";
+import { createJupiterQuoter, createJupiterSwapper, type JupiterQuoteResponse } from "./jupiter";
 
 const KAMINO_API_BASE = "https://api.kamino.finance";
 // Kamino's leverage/metrics endpoint took ~8.3s to respond on 2026-09-24, so the original 10s

@@ -6,7 +6,7 @@
  * live-verification step for everything KaminoClient assumes.
  */
 import "dotenv/config";
-import { KaminoClient } from "./client.js";
+import { KaminoClient } from "./client";
 
 async function main() {
   const rpcUrl = process.env.SOLANA_RPC_URL;

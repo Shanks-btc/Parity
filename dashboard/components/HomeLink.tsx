@@ -15,7 +15,7 @@ export function HomeLink({ children, className }: { children: ReactNode; classNa
   return (
     <Link
       href="/"
-      aria-label="Parity — home"
+      aria-label="Parity, home"
       className={className}
       onClick={(e) => {
         if (pathname !== "/") return;

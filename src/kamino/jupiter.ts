@@ -154,3 +154,84 @@ export function createJupiterSwapper(
     ];
   };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Standalone swap (user-facing "buy an xStock with USDC"), separate from the Multiply-internal
+// quoter/swapper above: one plain Jupiter swap as its OWN transaction, not nested in a flash loan.
+// ---------------------------------------------------------------------------------------------
+
+export interface PlainSwapQuote {
+  inputMint: string;
+  outputMint: string;
+  /** Raw base units of the input / expected output / guaranteed minimum output. */
+  inAmount: string;
+  outAmount: string;
+  otherAmountThreshold: string;
+  slippageBps: number;
+  priceImpactPct: string;
+  routeLabels: string[];
+}
+
+export interface PlainSwapTransaction {
+  /** Unsigned base64 v0 transaction, fee payer = the owner, ready for the wallet to sign. */
+  transactionBase64: string;
+  lastValidBlockHeight: string;
+  quote: PlainSwapQuote;
+}
+
+/**
+ * Builds (does NOT sign or send) a plain Jupiter swap of `amountRaw` base units of `inputMint` into
+ * `outputMint` for `ownerAddress`, via Jupiter's /quote + /swap. Jupiter creates the owner's output
+ * token account if missing. Unlike fetchJupiterQuote above, there is no maxAccounts cap — that only
+ * exists to keep a swap small enough to nest inside a Kamino flash-loan transaction.
+ */
+export async function buildPlainSwapTransaction(params: {
+  ownerAddress: string;
+  inputMint: string;
+  outputMint: string;
+  amountRaw: string;
+  slippageBps?: number;
+}): Promise<PlainSwapTransaction> {
+  const slippageBps = params.slippageBps ?? 100;
+  const quoteRes = await fetch(
+    `${JUPITER_BASE}/quote?inputMint=${params.inputMint}&outputMint=${params.outputMint}` +
+      `&amount=${params.amountRaw}&slippageBps=${slippageBps}`
+  );
+  if (!quoteRes.ok) {
+    throw new Error(`Jupiter quote failed (${quoteRes.status}): ${(await quoteRes.text()).slice(0, 200)}`);
+  }
+  const quoteResponse = (await quoteRes.json()) as JupiterQuoteResponse & {
+    otherAmountThreshold: string;
+    routePlan?: Array<{ swapInfo?: { label?: string } }>;
+  };
+
+  const swapRes = await fetch(`${JUPITER_BASE}/swap`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      quoteResponse,
+      userPublicKey: params.ownerAddress,
+      dynamicComputeUnitLimit: true,
+      prioritizationFeeLamports: { priorityLevelWithMaxLamports: { maxLamports: 100_000, priorityLevel: "medium" } },
+    }),
+  });
+  if (!swapRes.ok) {
+    throw new Error(`Jupiter swap build failed (${swapRes.status}): ${(await swapRes.text()).slice(0, 200)}`);
+  }
+  const swap = (await swapRes.json()) as { swapTransaction: string; lastValidBlockHeight: number };
+
+  return {
+    transactionBase64: swap.swapTransaction,
+    lastValidBlockHeight: String(swap.lastValidBlockHeight),
+    quote: {
+      inputMint: params.inputMint,
+      outputMint: params.outputMint,
+      inAmount: quoteResponse.inAmount,
+      outAmount: quoteResponse.outAmount,
+      otherAmountThreshold: quoteResponse.otherAmountThreshold,
+      slippageBps,
+      priceImpactPct: quoteResponse.priceImpactPct,
+      routeLabels: [...new Set((quoteResponse.routePlan ?? []).map((r) => r.swapInfo?.label).filter((l): l is string => !!l))],
+    },
+  };
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
+import { usePathname } from "next/navigation";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { shortAddress } from "@/lib/wallet";
@@ -20,7 +21,8 @@ import { shortAddress } from "@/lib/wallet";
  * ("light" = the landing page's paper nav, "dark" = the Trade page's terminal nav).
  */
 
-type Size = "nav" | "hero" | "cta";
+// "block" = full-width at every viewport width (the Trade order panel's secondary button).
+type Size = "nav" | "hero" | "cta" | "block";
 type Tone = "light" | "dark";
 
 const GEOMETRY: Record<Size, Record<Tone, string>> = {
@@ -35,6 +37,7 @@ const GEOMETRY: Record<Size, Record<Tone, string>> = {
   },
   hero: { light: "rounded-lg w-full px-[28px] py-[15px] text-[15px] sm:w-auto", dark: "rounded-lg w-full px-[28px] py-[15px] text-[15px] sm:w-auto" },
   cta: { light: "rounded-[30px] w-full px-[30px] py-[15px] text-[15px] sm:w-auto", dark: "rounded-[30px] w-full px-[30px] py-[15px] text-[15px] sm:w-auto" },
+  block: { light: "rounded-lg w-full justify-center px-[28px] py-[15px] text-[15px]", dark: "rounded-lg w-full justify-center px-[28px] py-[15px] text-[15px]" },
 };
 
 const DISCONNECTED: Record<Size, Record<Tone, string>> = {
@@ -42,6 +45,7 @@ const DISCONNECTED: Record<Size, Record<Tone, string>> = {
   hero: { light: "bg-gold-deep text-gold-ink hover:bg-gold-text", dark: "bg-gold text-gold-ink hover:bg-[#eec468]" },
   // Over the closing-CTA photo: bright gold pill.
   cta: { light: "bg-gold text-gold-ink hover:bg-gold-deep", dark: "bg-gold text-gold-ink hover:bg-gold-deep" },
+  block: { light: "bg-gold-deep text-gold-ink hover:bg-gold-text", dark: "bg-gold text-gold-ink hover:bg-[#eec468]" },
 };
 
 const CONNECTED: Record<Size, Record<Tone, string>> = {
@@ -54,6 +58,10 @@ const CONNECTED: Record<Size, Record<Tone, string>> = {
     dark: "border-term-control bg-term-surface text-term-text hover:border-gold",
   },
   cta: { light: "border-white/50 bg-white/10 text-white backdrop-blur hover:border-white", dark: "border-white/50 bg-white/10 text-white backdrop-blur hover:border-white" },
+  block: {
+    light: "border-line-strong bg-surface text-ink hover:border-gold-deep",
+    dark: "border-term-control bg-term-surface text-term-text hover:border-gold",
+  },
 };
 
 const MENU: Record<Tone, { panel: string; item: string; muted: string }> = {
@@ -82,6 +90,11 @@ export function ConnectWalletButton({
 }) {
   const { publicKey, connected, connecting, disconnecting, wallet, disconnect, select } = useWallet();
   const { setVisible } = useWalletModal();
+
+  // The landing page says "Connect Wallet"; every other page says "Connect Vault". Only the default label is affected
+  // (custom text such as "Connect vault to borrow" is left as written), and only the DISCONNECTED state — once a wallet
+  // is connected the button shows its address exactly as before, on every page.
+  const noun = usePathname() === "/" ? "Wallet" : "Vault";
 
   // Until mounted, always render the disconnected button so server HTML and first client render match
   // (the wallet extension and any auto-reconnect only exist in the browser).
@@ -128,12 +141,12 @@ export function ConnectWalletButton({
           onClick={() => setVisible(true)}
           className={`${base} border-transparent ${DISCONNECTED[size][tone]} disabled:cursor-wait disabled:opacity-70`}
         >
-          {busy ? "Connecting…" : nav && children === DEFAULT_LABEL ? (
+          {busy ? "Connecting…" : children !== DEFAULT_LABEL ? children : nav ? (
             <>
-              Connect<span className="max-[389px]:hidden"> Wallet</span>
+              Connect<span className="max-[389px]:hidden"> {noun}</span>
             </>
           ) : (
-            children
+            `Connect ${noun}`
           )}
         </button>
       </div>
@@ -165,12 +178,12 @@ export function ConnectWalletButton({
   };
 
   return (
-    <div ref={root} className="relative shrink-0" data-wallet-state="connected">
+    <div ref={root} className={`relative shrink-0 ${size === "block" ? "w-full" : ""}`} data-wallet-state="connected">
       <button
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`Wallet ${address} — open menu`}
+        aria-label={`Wallet ${address}, open menu`}
         onClick={() => setOpen((o) => !o)}
         className={`${base} flex items-center gap-[8px] ${CONNECTED[size][tone]}`}
       >
@@ -192,7 +205,7 @@ export function ConnectWalletButton({
         <div
           role="menu"
           aria-label="Wallet"
-          className={`absolute right-0 top-full z-[60] mt-2 min-w-[220px] rounded-xl border p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.18)] ${menu.panel}`}
+          className={`absolute right-0 z-[60] min-w-[220px] ${size === "block" ? "bottom-full mb-2" : "top-full mt-2"} rounded-xl border p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.18)] ${menu.panel}`}
         >
           <div className={`px-3 pb-2 pt-1.5 font-mono text-[11px] ${menu.muted}`}>Connected with {wallet?.adapter.name ?? "wallet"}</div>
           <button type="button" role="menuitem" onClick={copy} className={`flex w-full cursor-pointer items-center justify-between gap-4 rounded-lg px-3 py-2.5 text-left font-mono text-[13px] ${menu.item}`}>

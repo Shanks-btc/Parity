@@ -34,6 +34,23 @@ export const allAssets = Object.keys(market.assets) as AssetSymbol[];
 export const multiplyLiveAssets = allAssets.filter((s) => market.assets[s].multiply.obligations > 0);
 export const multiplyNotLiveAssets = allAssets.filter((s) => market.assets[s].multiply.obligations === 0);
 
-/** "A", "A and B", "A, B, and C" (or "or"). */
-export const listJoin = (items: string[], word: "and" | "or" = "and") =>
-  items.length <= 2 ? items.join(` ${word} `) : `${items.slice(0, -1).join(", ")}, ${word} ${items[items.length - 1]}`;
+/**
+ * "A", "A and B", "A, B, and C" (or "or"). `sep` is the separator between 3+ items: the landing page passes " — " (its copy
+ * uses em-dashes instead of commas), every other page keeps the default ", ".
+ */
+export const listJoin = (items: string[], word: "and" | "or" = "and", sep = ", ") =>
+  items.length <= 2 ? items.join(` ${word} `) : `${items.slice(0, -1).join(sep)}${sep}${word} ${items[items.length - 1]}`;
+
+/** The landing page's list style: "A — B — and C". */
+export const LANDING_SEP = ", ";
+
+/**
+ * Net carry of "borrow USDC, redeposit it" (supply APY − borrow APY). The landing Strategies card, the /earn
+ * index card and the /earn/redeposit page all read these, so the caution framing follows the sign of the same
+ * verified number everywhere and cannot drift between pages.
+ */
+export const carryNegative = market.usdc.netCarryPct < 0;
+export const carryLabel = signedPct(market.usdc.netCarryPct);
+export const carryNote = carryNegative
+  ? "Parity's agent won't recommend this until the math turns positive, it isn't right now."
+  : "Supply APY currently exceeds borrow APY, the agent can consider this, sized conservatively.";

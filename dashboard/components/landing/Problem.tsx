@@ -1,4 +1,5 @@
 import { borrowApyLabel } from "@/lib/market";
+import { CountUp } from "../CountUp";
 import { Section, SectionTitle } from "./Section";
 
 interface ProblemStat {
@@ -15,13 +16,13 @@ const STATS: ProblemStat[] = [
     value: "$100T+",
     tone: "ink",
     label: "GLOBAL EQUITY VALUE",
-    body: "Sitting in brokerage accounts worldwide — mostly idle, not earning yield, not backing anything.",
+    body: "Sitting in brokerage accounts worldwide, mostly idle, not earning yield, not backing anything.",
   },
   {
     value: "11.8%",
     tone: "clay",
     label: "SCHWAB'S OWN MARGIN RATE, SMALL BALANCE",
-    body: "What a major brokerage charges to borrow against your own stock — checked directly on schwab.com, not estimated.",
+    body: "What a major brokerage charges to borrow against your own stock, checked directly on schwab.com, not estimated.",
   },
   // Internal figure: MUST be the exact value the Strategies Borrow card shows. Both render
   // `borrowApyLabel` from lib/market.ts (market-snapshot.json → usdc.borrowApyPct), never a literal.
@@ -31,7 +32,7 @@ const STATS: ProblemStat[] = [
     // The mockup said "LIVE RATE"; the page labels snapshot figures "as of last check" everywhere
     // else (they're verified live, then snapshotted — not a live feed), so this one does too.
     label: "PARITY'S RATE VIA KAMINO, AS OF LAST CHECK",
-    body: "The same real, live-checked figure shown in the Strategies section below — not a separate marketing number.",
+    body: "The same real, live-checked figure shown in the Strategies section below, not a separate marketing number.",
     raised: true,
   },
 ];
@@ -52,7 +53,7 @@ export function Problem() {
             key={s.label}
             className={`card-lift flex-1 rounded-xl border border-line p-6 md:p-8 ${s.raised ? "bg-paper-raised" : ""}`}
           >
-            <div className={`mb-2.5 font-serif text-[36px] font-bold leading-none md:text-[44px] ${TONE[s.tone]}`}>{s.value}</div>
+            <CountUp className={`mb-2.5 font-serif text-[36px] font-bold leading-none md:text-[44px] ${TONE[s.tone]}`}>{s.value}</CountUp>
             <div className="mb-3.5 font-mono text-[11px] tracking-[0.04em] text-ink-faint">{s.label}</div>
             <p className="m-0 font-serif text-sm leading-[1.6] text-ink-muted">{s.body}</p>
           </article>
