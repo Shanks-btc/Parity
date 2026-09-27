@@ -15,7 +15,7 @@ export default function BorrowPage() {
         <PageHeader
           eyebrow="BORROW · FLOATING RATE"
           title="Borrow USDC against your stock"
-          subtitle="Supply AAPLx, SPYx or TSLAx as collateral on Kamino Lend and borrow USDC without selling. Every number below comes from Kamino's live market, and you see the simulated result before anything is signed."
+          subtitle="Supply AAPLx, SPYx or TSLAx as collateral on Kamino Lend and borrow USDC without selling."
         />
         <Suspense fallback={null}>
           <BorrowForm />

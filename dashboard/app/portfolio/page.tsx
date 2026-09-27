@@ -11,7 +11,7 @@ export default function PortfolioPage() {
   return (
     <AppShell active="portfolio">
       <Page>
-        <PageHeader eyebrow="PORTFOLIO" title="Your positions" subtitle="Read live from Kamino's xStocks market for your connected wallet. Nothing here is a sample or a placeholder." />
+        <PageHeader eyebrow="PORTFOLIO" title="Your positions" subtitle="Read live from Kamino's xStocks market for your connected wallet." />
         <PortfolioView />
       </Page>
     </AppShell>

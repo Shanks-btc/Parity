@@ -216,8 +216,7 @@ export function OrderPanel({ className = "" }: { className?: string }) {
             connected-state address chip) — not a separate implementation. It only connects; it places nothing. */}
         <ConnectWalletButton size="block" tone="dark" />
         <p className="m-0 font-mono text-[10px] leading-normal text-term-faint">
-          {side === "long" ? "Long buys at the best ask." : "Short sells at the best bid."} Figures use the simulated price
-          shown on this page. Nothing can be placed.
+          {side === "long" ? "Long buys at the best ask" : "Short sells at the best bid"}
         </p>
       </div>
     </div>

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AppShell, Page, PageHeader } from "@/components/app/AppShell";
 import { ArrowRightIcon, StackIcon, TrendIcon } from "@/components/icons";
 import { Mono } from "@/components/Mono";
-import { carryLabel, carryNegative, carryNote, checkedAtLabel, listJoin, market, multiplyLiveAssets, multiplyNotLiveAssets } from "@/lib/market";
+import { carryLabel, carryNegative, carryNote, listJoin, market, multiplyLiveAssets, multiplyNotLiveAssets } from "@/lib/market";
 
 export const metadata: Metadata = {
   title: "Parity, Earn",
@@ -20,7 +20,7 @@ export default function EarnPage() {
         <PageHeader
           eyebrow="EARN"
           title="Earn strategies"
-          subtitle={`Two strategies, both running on Kamino's xStocks market. Figures are as of the last live check (${checkedAtLabel()}).`}
+          subtitle="Two strategies, both running on Kamino's xStocks market."
         />
         <div className="flex flex-col gap-6 lg:flex-row">
           <Card
