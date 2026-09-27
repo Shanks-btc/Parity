@@ -1,8 +1,8 @@
-Parity is an onchain prime brokerage for tokenized stocks. A user states a goal in plain language or picks it from a guided wizard, an agent checks their real Kamino position and cross-checks the asset's price against Pyth, and only after a real transaction simulation succeeds does it propose anything for the user to sign.
+Parity is an onchain prime brokerage for tokenized stocks. A user states a goal in plain language or picks it from a guided wizard, an agent checks their real Kamino position and cross-checks the asset's price against Pyth, and only after a real transaction  succeeds does it propose anything for the user to sign.
 
 I built Parity around a simple question: what should an agent be allowed to tell a user before it's actually checked? A recommendation that sounds confident isn't the same as one that's been verified against real state, and a system that can't tell the difference will eventually propose something wrong with total conviction. Every proposal Parity makes has to survive contact with a real position, a real price check and if any of those can't be completed, the agent has to say so, not fill the gap with a guess.
 
-Project stage: Backend fully live-verified against Solana mainnet — real Kamino market reads, real obligation reads, real transaction simulation, real Jupiter swap construction. The sign to submit to confirm pipeline is proven end-to-end on devnet. Every mainnet transaction type has been built and successfully  against live mainnet state; a real signed mainnet transaction.
+Project stage: Backend fully live-verified against Solana mainnet, real Kamino market reads, real obligation reads, real transaction, real Jupiter swap construction. The sign to submit to confirm pipeline is proven end-to-end on devnet. Every mainnet transaction type has been built and successfully  against live mainnet state; a real signed mainnet transaction.
 
 ## Demo
 
