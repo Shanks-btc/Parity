@@ -16,18 +16,26 @@ import { Wizard } from "./Wizard";
  * click must not throw away a 1–2 minute paid run) or while a nested dialog (the sign confirmation, the wallet picker)
  * is open — those handle their own dismissal.
  */
+export interface WizardOpenOptions {
+  /** Element to hand focus back to on close. */
+  trigger?: HTMLElement | null;
+  /** Reopen at the agent step with the answers saved in sessionStorage (used after buying on Trade). */
+  resume?: boolean;
+}
 interface WizardModalApi {
-  open: (trigger?: HTMLElement | null) => void;
+  open: (arg?: HTMLElement | null | WizardOpenOptions) => void;
   close: () => void;
   isOpen: boolean;
 }
 const Ctx = createContext<WizardModalApi | null>(null);
 
-export function useWizardModal(): WizardModalApi {
+export function useWizard(): WizardModalApi {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useWizardModal must be used inside <WizardModalProvider>.");
   return ctx;
 }
+
+export const useWizardModal = useWizard;
 
 /** A nested dialog is on top: our own Tx confirmation, or the wallet-adapter picker. */
 const nestedDialogOpen = () => !!document.querySelector("[data-tx-step], .wallet-adapter-modal");
@@ -37,11 +45,15 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
 export function WizardModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [resume, setResume] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
 
-  const open = useCallback((trigger?: HTMLElement | null) => {
+  const open = useCallback((arg?: HTMLElement | null | WizardOpenOptions) => {
+    const opts: WizardOpenOptions = arg && !(arg instanceof HTMLElement) ? arg : { trigger: arg as HTMLElement | null | undefined };
+    const trigger = opts.trigger;
+    setResume(!!opts.resume);
     // The element to give focus back to on close: the trigger itself if it says so (Safari doesn't focus a button on
     // click, so document.activeElement can be <body> there), else whatever had focus.
     opener.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
@@ -153,7 +165,7 @@ export function WizardModalProvider({ children }: { children: ReactNode }) {
               </button>
             </header>
             <div data-testid="wizard-body" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-6 md:px-8 md:py-8">
-              <Wizard onBusyChange={setBusy} onNavigate={close} />
+              <Wizard onBusyChange={setBusy} onNavigate={close} resume={resume} />
             </div>
           </div>
         </div>

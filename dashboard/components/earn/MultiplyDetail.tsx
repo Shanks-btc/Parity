@@ -9,7 +9,7 @@ import { useExecute } from "@/lib/execute";
 import { borrowApyLabel, checkedAtLabel, market } from "@/lib/market";
 import { Mono } from "../Mono";
 import { Notice } from "../app/AppShell";
-import { BuyOnJupiter } from "../app/BuyOnJupiter";
+import { BuyAsset } from "../app/BuyAsset";
 import { HF_BLOCK, HF_WARN, SimulationPanel } from "../app/SimulationPanel";
 import { AmountInput, StatRow, parseAmount, tokenAmount, usd } from "../app/fields";
 import { TxModal, type SummaryRow } from "../app/TxModal";
@@ -135,7 +135,7 @@ export function MultiplyDetail() {
                 onMax={spot !== null && Number(spot) > 0 ? () => setDeposit(spot) : undefined}
                 hint={!wallet ? "Connect a wallet to see your balance." : spot === null ? "Reading your balance…" : overSpot ? <span className="text-clay-text">More than your depositable balance of {tokenAmount(spot, 8)} {asset}.</span> : <>Balance: {tokenAmount(spot, 8)} {asset} <span className="text-ink-faint">(raw units)</span></>}
               />
-              <BuyOnJupiter symbols={[asset]} className="-mt-3" />
+              <BuyAsset symbols={[asset]} next="multiply" className="-mt-3" />
               <div>
                 <label htmlFor="mlev" className="mb-2 flex items-baseline justify-between font-mono text-[11px] tracking-[0.04em] text-ink-muted">
                   <span>TARGET LEVERAGE</span>
@@ -204,7 +204,7 @@ export function MultiplyDetail() {
       </DetailSection>
 
       <DetailSection id="counterparties" title="Counterparties">
-        <Counterparties items={[...COUNTERPARTIES, { name: "Jupiter", role: "The swap aggregator that converts flash-borrowed USDC into more of your stock when a position opens.", href: "https://jup.ag" }]} />
+        <Counterparties items={[...COUNTERPARTIES, { name: "Jupiter", role: "The swap aggregator that converts flash-borrowed USDC into more of your stock when a position opens." }]} />
       </DetailSection>
 
       <DetailSection id="faq" title="FAQ">

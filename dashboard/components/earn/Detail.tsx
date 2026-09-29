@@ -122,14 +122,18 @@ export function ContractAddresses({ symbols }: { symbols: string[] }) {
   );
 }
 
-export function Counterparties({ items }: { items: { name: string; role: string; href: string }[] }) {
+export function Counterparties({ items }: { items: { name: string; role: string; href?: string }[] }) {
   return (
     <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-2">
       {items.map((c) => (
         <li key={c.name} className="rounded-[10px] border border-line bg-surface p-5">
-          <a href={c.href} target="_blank" rel="noreferrer" className="font-serif text-[17px] font-semibold text-ink underline-offset-2 hover:text-gold-text hover:underline">
-            {c.name} ↗
-          </a>
+          {c.href ? (
+            <a href={c.href} target="_blank" rel="noreferrer" className="font-serif text-[17px] font-semibold text-ink underline-offset-2 hover:text-gold-text hover:underline">
+              {c.name} ↗
+            </a>
+          ) : (
+            <span className="font-serif text-[17px] font-semibold text-ink">{c.name}</span>
+          )}
           <p className="mb-0 mt-1.5 font-serif text-[14px] leading-normal text-ink-muted">{c.role}</p>
         </li>
       ))}

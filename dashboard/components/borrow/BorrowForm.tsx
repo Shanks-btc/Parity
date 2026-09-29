@@ -8,7 +8,7 @@ import { useExecute } from "@/lib/execute";
 import { borrowApyLabel, checkedAtLabel, market } from "@/lib/market";
 import { AmountInput, StatRow, parseAmount, tokenAmount, usd } from "../app/fields";
 import { Notice } from "../app/AppShell";
-import { BuyOnJupiter } from "../app/BuyOnJupiter";
+import { BuyAsset } from "../app/BuyAsset";
 import { HF_BLOCK, HF_WARN, SimulationPanel } from "../app/SimulationPanel";
 import { TxModal, type SummaryRow } from "../app/TxModal";
 import { ConnectWalletButton } from "../wallet/ConnectWalletButton";
@@ -161,7 +161,7 @@ export function BorrowForm() {
                     : <>Balance: {tokenAmount(spot, 8)} {asset} <span className="text-ink-faint">(raw units, what Kamino can actually deposit; your wallet may display slightly more for xStocks)</span></>
             }
           />
-          <BuyOnJupiter symbols={[asset]} className="-mt-3" />
+          <BuyAsset symbols={[asset]} className="-mt-3" />
           <AmountInput
             id="borrow"
             label="BORROW USDC"

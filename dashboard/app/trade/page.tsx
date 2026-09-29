@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SiteNav } from "@/components/SiteNav";
 import { ConnectWalletButton } from "@/components/wallet/ConnectWalletButton";
 import { RealQuote } from "@/components/trade/RealQuote";
+import { TradeSidePanel } from "@/components/trade/TradeSidePanel";
+import { OrderPanel } from "@/components/trade/TradeControls";
 import {
   ChartPanel,
-  OrderPanel,
   Orderbook,
   TickerBar,
 } from "@/components/trade/TradeConcept";
@@ -28,7 +30,11 @@ export default function TradeConceptPage() {
       <RealQuote symbol="AAPL" />
       <main className="mx-auto flex w-full max-w-[1440px] flex-col lg:flex-1 lg:flex-row lg:overflow-hidden">
         <ChartPanel />
-        <OrderPanel className="lg:order-3" />
+        {/* Right-hand column: Long/Short by default, the real swap panel with ?mode=spot. Until the URL is read, the
+            server HTML is the Long/Short panel, so there is no layout jump for the default view. */}
+        <Suspense fallback={<OrderPanel className="lg:order-3" />}>
+          <TradeSidePanel className="lg:order-3" />
+        </Suspense>
         <Orderbook className="lg:order-2" />
       </main>
     </div>

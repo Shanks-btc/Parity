@@ -32,6 +32,7 @@ export function TxModal({
   state,
   onConfirm,
   onClose,
+  successNote,
 }: {
   open: boolean;
   title: string;
@@ -43,6 +44,8 @@ export function TxModal({
   state: ExecuteState;
   onConfirm: () => void;
   onClose: () => void;
+  /** Extra line inside the success outcome (e.g. the amount a swap actually delivered). */
+  successNote?: React.ReactNode;
 }) {
   const busy = state.step === "building" || state.step === "signing" || state.step === "submitting";
   const primary = useRef<HTMLButtonElement>(null);
@@ -127,13 +130,13 @@ export function TxModal({
           </div>
         )}
 
-        {state.step === "done" && <Outcome state={state} onClose={onClose} primary={primary} />}
+        {state.step === "done" && <Outcome state={state} onClose={onClose} primary={primary} successNote={successNote} />}
       </div>
     </div>
   );
 }
 
-function Outcome({ state, onClose, primary }: { state: Extract<ExecuteState, { step: "done" }>; onClose: () => void; primary: React.RefObject<HTMLButtonElement | null> }) {
+function Outcome({ state, onClose, primary, successNote }: { state: Extract<ExecuteState, { step: "done" }>; onClose: () => void; primary: React.RefObject<HTMLButtonElement | null>; successNote?: React.ReactNode }) {
   const o = state.outcome;
   const close = (
     <button ref={primary} type="button" onClick={onClose} className="mt-5 cursor-pointer rounded-lg border border-transparent bg-gold-deep px-5 py-3 font-mono text-[14px] font-medium text-gold-ink hover:bg-gold-text">
@@ -160,6 +163,7 @@ function Outcome({ state, onClose, primary }: { state: Extract<ExecuteState, { s
           <p className="m-0 mb-3 font-serif text-[14px] text-ink-muted">Landed in slot <Mono>{o.slot}</Mono> on Solana mainnet. Signature:</p>
           <div className="mb-2">{link(o.signature)}</div>
           <a href={explorerTxUrl(o.signature)} target="_blank" rel="noreferrer" className="font-mono text-[13px] text-gold-strong">View on Solana Explorer ↗</a>
+          {successNote && <div data-testid="tx-success-note" className="mt-3 font-serif text-[14px] text-ink">{successNote}</div>}
           <div>{close}</div>
         </div>
       );

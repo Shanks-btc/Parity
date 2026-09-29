@@ -185,6 +185,50 @@ export interface PlainSwapTransaction {
  * token account if missing. Unlike fetchJupiterQuote above, there is no maxAccounts cap — that only
  * exists to keep a swap small enough to nest inside a Kamino flash-loan transaction.
  */
+type PlainQuoteResponse = JupiterQuoteResponse & {
+  otherAmountThreshold: string;
+  routePlan?: Array<{ swapInfo?: { label?: string } }>;
+};
+
+/**
+ * Quote only (no transaction). EXACT-INPUT: the caller says how much to spend and Jupiter says what comes out.
+ * Jupiter returns NO_ROUTES_FOUND for exact-output quotes on every xStock pair (measured in the preflight), so
+ * "how much do I need to spend to receive X" can only be answered by quoting inputs and converging.
+ * Throws JupiterNoRouteError when the pair has no route.
+ */
+export class JupiterNoRouteError extends Error {}
+
+export async function fetchPlainSwapQuote(params: { inputMint: string; outputMint: string; amountRaw: string; slippageBps?: number }): Promise<{ quote: PlainSwapQuote; quoteResponse: PlainQuoteResponse }> {
+  const slippageBps = params.slippageBps ?? 100;
+  const res = await fetch(`${JUPITER_BASE}/quote?inputMint=${params.inputMint}&outputMint=${params.outputMint}&amount=${params.amountRaw}&slippageBps=${slippageBps}`);
+  if (!res.ok) {
+    const text = (await res.text()).slice(0, 200);
+    if (res.status === 400 && /NO_ROUTES_FOUND|COULD_NOT_FIND_ANY_ROUTE/i.test(text)) throw new JupiterNoRouteError(`Jupiter has no route for this pair: ${text}`);
+    throw new Error(`Jupiter quote failed (${res.status}): ${text}`);
+  }
+  const quoteResponse = (await res.json()) as PlainQuoteResponse;
+  return {
+    quoteResponse,
+    quote: {
+      inputMint: params.inputMint,
+      outputMint: params.outputMint,
+      inAmount: quoteResponse.inAmount,
+      outAmount: quoteResponse.outAmount,
+      otherAmountThreshold: quoteResponse.otherAmountThreshold,
+      slippageBps,
+      priceImpactPct: quoteResponse.priceImpactPct,
+      routeLabels: [...new Set((quoteResponse.routePlan ?? []).map((r) => r.swapInfo?.label).filter((l): l is string => !!l))],
+    },
+  };
+}
+
+/**
+ * Builds (does NOT sign or send) a plain Jupiter swap of `amountRaw` base units of `inputMint` into
+ * `outputMint` for `ownerAddress`, via Jupiter's /quote + /swap. Jupiter creates the owner's output
+ * token account if missing, and wraps/unwraps native SOL when the input is SOL. Unlike fetchJupiterQuote above,
+ * there is no maxAccounts cap — that only exists to keep a swap small enough to nest inside a Kamino flash-loan
+ * transaction.
+ */
 export async function buildPlainSwapTransaction(params: {
   ownerAddress: string;
   inputMint: string;
@@ -192,18 +236,7 @@ export async function buildPlainSwapTransaction(params: {
   amountRaw: string;
   slippageBps?: number;
 }): Promise<PlainSwapTransaction> {
-  const slippageBps = params.slippageBps ?? 100;
-  const quoteRes = await fetch(
-    `${JUPITER_BASE}/quote?inputMint=${params.inputMint}&outputMint=${params.outputMint}` +
-      `&amount=${params.amountRaw}&slippageBps=${slippageBps}`
-  );
-  if (!quoteRes.ok) {
-    throw new Error(`Jupiter quote failed (${quoteRes.status}): ${(await quoteRes.text()).slice(0, 200)}`);
-  }
-  const quoteResponse = (await quoteRes.json()) as JupiterQuoteResponse & {
-    otherAmountThreshold: string;
-    routePlan?: Array<{ swapInfo?: { label?: string } }>;
-  };
+  const { quote, quoteResponse } = await fetchPlainSwapQuote(params);
 
   const swapRes = await fetch(`${JUPITER_BASE}/swap`, {
     method: "POST",
@@ -220,18 +253,5 @@ export async function buildPlainSwapTransaction(params: {
   }
   const swap = (await swapRes.json()) as { swapTransaction: string; lastValidBlockHeight: number };
 
-  return {
-    transactionBase64: swap.swapTransaction,
-    lastValidBlockHeight: String(swap.lastValidBlockHeight),
-    quote: {
-      inputMint: params.inputMint,
-      outputMint: params.outputMint,
-      inAmount: quoteResponse.inAmount,
-      outAmount: quoteResponse.outAmount,
-      otherAmountThreshold: quoteResponse.otherAmountThreshold,
-      slippageBps,
-      priceImpactPct: quoteResponse.priceImpactPct,
-      routeLabels: [...new Set((quoteResponse.routePlan ?? []).map((r) => r.swapInfo?.label).filter((l): l is string => !!l))],
-    },
-  };
+  return { transactionBase64: swap.swapTransaction, lastValidBlockHeight: String(swap.lastValidBlockHeight), quote };
 }

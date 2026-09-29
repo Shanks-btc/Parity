@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AppShell, Notice, Page, PageHeader } from "@/components/app/AppShell";
-import { BuyOnJupiter } from "@/components/app/BuyOnJupiter";
+import { BuyAsset } from "@/components/app/BuyAsset";
 import { Mono } from "@/components/Mono";
 import { BackLink, ContractAddresses, COUNTERPARTIES, Counterparties, DetailSection, Faq, FlowDiagram, HeroStat, ProcessList, RiskList } from "@/components/earn/Detail";
 import { VaultOverview } from "@/components/earn/VaultOverview";
@@ -58,7 +58,7 @@ export default function RedepositPage() {
               { title: "Net carry", text: `Supply rate minus borrow rate: ${carryLabel} a year on the redeposited amount.`, tone: carryNegative ? "clay" : "positive" },
             ]}
           />
-          <BuyOnJupiter symbols={["AAPLx", "SPYx", "TSLAx"]} className="mt-4" />
+          <BuyAsset symbols={["AAPLx", "SPYx", "TSLAx"]} className="mt-4" />
         </DetailSection>
 
         <DetailSection id="process" title="Process & execution">

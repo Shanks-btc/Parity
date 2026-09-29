@@ -1,13 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { useReserves } from "@/lib/api";
+import { HowItWorks, requiredStock } from "./HowItWorks";
 import { Notice } from "../app/AppShell";
 import { Mono } from "../Mono";
 import { tokenAmount } from "../app/fields";
 
 /** The accepted propose_strategy output, exactly as the agent returned it. */
-interface Proposal {
+export interface Proposal {
   proposed: true;
   summary: string;
   strategyType: "borrow" | "borrow_and_earn" | "earn" | "multiply";
@@ -70,7 +71,24 @@ export function destinationFor(p: Proposal): { href: string; label: string; exec
   return { href: "/earn/redeposit", label: "Read how this strategy works", executes: false };
 }
 
-export function AgentResult({ outcome, onNavigate, onRestart, onRetry }: { outcome: { intent: string; result: unknown } | { error: string }; onNavigate?: () => void; onRestart: () => void; onRetry: () => void }) {
+export function AgentResult({
+  outcome,
+  onNavigate,
+  onRestart,
+  onRetry,
+  heldBalances,
+  onComplete,
+}: {
+  outcome: { intent: string; result: unknown } | { error: string };
+  onNavigate?: () => void;
+  onRestart: () => void;
+  onRetry: () => void;
+  /** The wallet's real MOVABLE balances (raw-based, not the inflated on-screen amount); null while loading. */
+  heldBalances: { symbol: string; amount: string }[] | null;
+  /** The user followed the last step, so the wizard's saved answers are done with. */
+  onComplete?: () => void;
+}) {
+  const reserves = useReserves();
   if ("error" in outcome) {
     return (
       <div data-testid="agent-result" data-kind="error" className="flex flex-col items-start gap-4">
@@ -118,8 +136,8 @@ export function AgentResult({ outcome, onNavigate, onRestart, onRetry }: { outco
   return (
     <div data-testid="agent-result" data-kind="proposal" className="flex flex-col gap-6">
       <div>
-        <div className="mb-2 font-mono text-[11px] tracking-[0.04em] text-positive">LIVE AGENT PROPOSAL · SIMULATED ON MAINNET</div>
-        <h2 className="m-0 font-serif text-[28px] font-semibold text-ink md:text-[34px]">Here&apos;s what the agent recommends</h2>
+        <div data-testid="strategy-badge" className="mb-3 inline-block rounded-xl bg-positive-tint px-2.5 py-1 font-mono text-[10px] tracking-[0.03em] text-positive">STRATEGY SELECTED FOR YOU</div>
+        <h2 data-testid="strategy-title" className="m-0 font-serif text-[28px] font-semibold text-ink md:text-[34px]">{TYPE_LABEL[result.strategyType]}</h2>
         <p className="mb-0 mt-2 font-serif text-[13px] text-ink-muted">This is the agent&apos;s real answer for your wallet right now. It can differ from run to run, and nothing has been signed or sent.</p>
       </div>
 
@@ -163,19 +181,15 @@ export function AgentResult({ outcome, onNavigate, onRestart, onRetry }: { outco
 
       {intentBox}
 
-      <div className="flex flex-col gap-3 rounded-[10px] border border-line bg-surface p-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <Link href={dest.href} onClick={onNavigate} data-testid="proposal-action" className="rounded-lg bg-gold-deep px-6 py-3 font-mono text-[14px] font-medium text-gold-ink hover:bg-gold-text">
-            {dest.label} →
-          </Link>
-          <button type="button" onClick={onRestart} className="cursor-pointer rounded-lg border border-line-strong bg-surface px-5 py-3 font-mono text-[14px] text-ink hover:border-gold-deep">Start over</button>
-        </div>
-        <p className="m-0 font-serif text-[13px] leading-normal text-ink-muted">
-          {dest.executes
-            ? `You'll land on the real ${result.strategyType === "multiply" ? "Multiply" : "Borrow"} page with the agent's amounts filled in. It re-simulates the exact transaction and asks you to confirm before your wallet is ever asked to sign, the wizard signs nothing itself.`
-            : "The redeposit leg has no in-app execution, that page explains the strategy and its current net carry. Nothing is signed from here."}
-        </p>
-      </div>
+      <HowItWorks
+        proposal={result}
+        dest={dest}
+        held={heldBalances}
+        price={reserves.status === "ready" ? Number(reserves.data.reserves.find((r) => r.symbol === requiredStock(result)?.symbol)?.oraclePriceUsd) || null : null}
+        onNavigate={onNavigate}
+        onRestart={onRestart}
+        onComplete={onComplete}
+      />
     </div>
   );
 }
