@@ -30,8 +30,8 @@ export function Hero() {
       </h1>
 
       <p className="relative z-[1] m-0 max-w-[620px] rounded-lg bg-paper/75 px-3.5 py-1 font-serif text-[17px] leading-normal text-ink-soft md:text-[21px]">
-        Earn yield, borrow against your stock portfolio, and let an agent verify every step against real on-chain data
-        before you sign.
+        Earn, borrow and trade against your stock portfolio. Every transaction is tested against your live Kamino
+        position and Pyth prices before you sign.
       </p>
 
       <div className="z-[1] mt-2 flex w-full flex-col gap-3.5 sm:w-auto sm:flex-row">
