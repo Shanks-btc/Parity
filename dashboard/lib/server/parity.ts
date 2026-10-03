@@ -1,5 +1,6 @@
 import { KaminoClient } from "../../../src/kamino/client";
 import { StrategyValidator } from "../../../src/agent/validate";
+import { PositionManager } from "../../../src/agent/manage";
 import { withRpcRetry } from "../../../src/kamino/rpc-retry";
 
 /** Short retry for the RPC provider's intermittent 429s / dropped connections — the UI must not stall for the agent's 10s backoff. */
@@ -14,7 +15,7 @@ export const quickRetry = <T,>(fn: () => Promise<T>) => withRpcRetry(fn, 3, 700)
 export const MARKET_ADDRESS = process.env.KAMINO_MAIN_MARKET ?? "5wJeMrUYECGq41fxRESKALVcHnNX26TAWy4W98yULsua";
 const MARKET_TTL_MS = 60_000;
 
-type Loaded = { client: KaminoClient; validator: StrategyValidator; loadedAt: number };
+type Loaded = { client: KaminoClient; validator: StrategyValidator; manager: PositionManager; loadedAt: number };
 const g = globalThis as unknown as { __parity?: { current?: Loaded; loading?: Promise<Loaded> } };
 const state = (g.__parity ??= {});
 
@@ -26,7 +27,7 @@ export async function getParity(): Promise<Loaded> {
     state.loading = (async () => {
       const client = new KaminoClient(rpcUrl, MARKET_ADDRESS);
       await quickRetry(() => client.init());
-      return (state.current = { client, validator: new StrategyValidator(client), loadedAt: Date.now() });
+      return (state.current = { client, validator: new StrategyValidator(client), manager: new PositionManager(client), loadedAt: Date.now() });
     })().finally(() => {
       state.loading = undefined;
     });

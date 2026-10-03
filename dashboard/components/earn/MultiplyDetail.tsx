@@ -13,17 +13,13 @@ import { BuyAsset } from "../app/BuyAsset";
 import { HF_BLOCK, HF_WARN, SimulationPanel } from "../app/SimulationPanel";
 import { AmountInput, StatRow, parseAmount, tokenAmount, usd } from "../app/fields";
 import { TxModal, type SummaryRow } from "../app/TxModal";
+import { DEFAULT_LEVERAGE, HARD_CAP, MIN_LEVERAGE, MULTIPLY_ASSETS, maxLeverageFor, type MultiplyAsset } from "@/lib/multiply";
 import { ConnectWalletButton } from "../wallet/ConnectWalletButton";
 import { ContractAddresses, COUNTERPARTIES, Counterparties, DetailSection, Faq, FlowDiagram, HeroStat, ProcessList, RiskList } from "./Detail";
 import { VaultOverview } from "./VaultOverview";
 
-// Multiply is only offered where Kamino runs a live Multiply market: SPYx and TSLAx. AAPLx has none, and the
-// backend's capability check refuses it — so it is not even selectable here.
-const ASSETS = ["SPYx", "TSLAx"] as const;
-type Asset = (typeof ASSETS)[number];
-const MIN_LEVERAGE = 1.1;
-const DEFAULT_LEVERAGE = 1.5; // the leverage the agent itself sizes to, and the one verified in simulation
-const HARD_CAP = 2.5;
+const ASSETS = MULTIPLY_ASSETS;
+type Asset = MultiplyAsset;
 
 const N = ({ children }: { children: React.ReactNode }) => <Mono className="text-[0.92em] text-ink">{children}</Mono>;
 
@@ -48,8 +44,7 @@ export function MultiplyDetail() {
   const price = reserve ? Number(reserve.oraclePriceUsd) : null;
   const liq = reserve?.liquidationThresholdPct ?? null;
   const ltv = reserve?.loanToValuePct ?? null;
-  // Never offer more than 90% of the theoretical maximum leverage 1 / (1 − LTV), and never above the UI cap.
-  const maxLeverage = ltv !== null ? Math.min(HARD_CAP, Math.floor((0.9 / (1 - ltv / 100)) * 10) / 10) : HARD_CAP;
+  const maxLeverage = maxLeverageFor(ltv);
   const lev = Math.min(leverage, maxLeverage);
 
   const live = caps.status === "ready" ? caps.data : null;
@@ -143,7 +138,7 @@ export function MultiplyDetail() {
                 </label>
                 <input id="mlev" type="range" min={MIN_LEVERAGE} max={maxLeverage} step={0.1} value={lev} disabled={!wallet || !multiplyOk} onChange={(e) => setLeverage(Number(e.target.value))} className="w-full accent-gold-deep" />
                 <div className="mt-1 flex justify-between font-mono text-[11px] text-ink-faint"><span>{MIN_LEVERAGE.toFixed(1)}x</span><span>max offered {maxLeverage.toFixed(1)}x</span></div>
-                <p className="mb-0 mt-2 font-mono text-[11px] leading-normal text-ink-muted">Leverage amplifies losses as well as gains. Parity&apos;s agent sizes to {DEFAULT_LEVERAGE.toFixed(1)}x by default.</p>
+                <p className="mb-0 mt-2 font-mono text-[11px] leading-normal text-ink-muted">Leverage amplifies losses as well as gains. Parity sizes to {DEFAULT_LEVERAGE.toFixed(1)}x by default.</p>
               </div>
             </div>
             <div className="mt-6" data-testid="simulation"><SimulationPanel state={sim.status} result={result} error={sim.status === "error" ? sim.error : null} hf={hf} blocked={blockedByHf} /></div>
@@ -191,7 +186,7 @@ export function MultiplyDetail() {
           { title: "Swap and slippage risk", tone: "neutral", text: "Opening swaps USDC into the stock through Jupiter with a 1% slippage bound and a 0.5% quote buffer; a poor fill costs you at entry." },
           { title: "Borrow-rate risk", tone: "neutral", text: <>You pay the variable USDC borrow rate on the debt (<N>{borrowApyLabel}</N> APY as of the last check). It can rise.</> },
           { title: "Kamino smart-contract risk", tone: "neutral", text: "The position, the flash loan and the rebalancing all live inside Kamino. Parity cannot mitigate a bug or exploit there." },
-          { title: "Pyth availability risk", tone: "neutral", text: "Parity's Pyth price cross-check is currently unavailable for xStock feeds (key not yet entitled); the agent says so and sizes conservatively. Kamino's own oracle sets liquidation prices." },
+          { title: "Pyth availability risk", tone: "neutral", text: "Parity's Pyth price cross-check is currently unavailable for xStock feeds (key not yet entitled); Parity says so and sizes conservatively. Kamino's own oracle sets liquidation prices." },
         ]} />
       </DetailSection>
 

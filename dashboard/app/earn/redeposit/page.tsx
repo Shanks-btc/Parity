@@ -40,11 +40,11 @@ export default function RedepositPage() {
           {carryNegative ? (
             <>
               <strong>Caution, not a pitch.</strong> Right now borrowing USDC costs <N>{pct(usdc.borrowApyPct)}</N> a year and supplying it earns <N>{pct(usdc.supplyApyPct)}</N>, a net carry of <N>{carryLabel}</N>. Doing this today loses money before
-              any price move. Parity&apos;s agent won&apos;t recommend it while that is true, and nothing on this page opens the strategy.
+              any price move. Parity won&apos;t recommend it while that is true, and nothing on this page opens the strategy.
             </>
           ) : (
             <>
-              Supply APY currently exceeds borrow APY (net carry <N>{carryLabel}</N>). It is variable and can flip negative at any time; the agent sizes this conservatively and re-checks the carry each time.
+              Supply APY currently exceeds borrow APY (net carry <N>{carryLabel}</N>). It is variable and can flip negative at any time; this is sized conservatively, and the carry is re-checked each time.
             </>
           )}
         </Notice>
@@ -65,7 +65,7 @@ export default function RedepositPage() {
           <ProcessList
             steps={[
               { title: "Confirm your collateral position", text: "Parity reads your real Kamino obligation per reserve, which asset is actually deposited, and its health factor, rather than trusting what anyone says is there." },
-              { title: "Borrow USDC against it", text: "Sized against the asset's real loan-to-value limit, with a health factor of at least 1.5 as the agent's conservative floor." },
+              { title: "Borrow USDC against it", text: "Sized against the asset's real loan-to-value limit, with a health factor of at least 1.5 as the conservative floor." },
               { title: "Supply USDC to Kamino's pool", text: "The borrowed USDC goes into Kamino's own stablecoin pool as a plain supply, earning the supply rate." },
               { title: "Monitor net carry", text: "The strategy only makes sense while supply APY is above borrow APY. Both are variable, so this is checked again, not assumed." },
               { title: "Withdraw and repay if carry turns negative", text: "When the carry is negative, as it is right now, the right move is to withdraw the supplied USDC and repay the loan, not to wait." },
@@ -92,7 +92,7 @@ export default function RedepositPage() {
                 text: <>Your stock is collateral. If its price falls until your debt crosses the asset&apos;s liquidation threshold, Kamino can liquidate part of it, AAPLx <N>{limits("AAPLx")}</N>, SPYx <N>{limits("SPYx")}</N>, TSLAx <N>{limits("TSLAx")}</N>. Redepositing borrowed USDC does not add any collateral.</>,
               },
               { title: "Kamino smart-contract risk", tone: "neutral", text: "Both the borrow and the redeposit happen inside Kamino Lend. A bug, exploit or governance action there would affect this position, and Parity cannot mitigate it." },
-              { title: "Pyth availability risk", tone: "neutral", text: "Parity's own cross-check against Pyth is currently unavailable for equity and xStock feeds (our API key isn't entitled to them yet), so the agent sizes conservatively and says so. Kamino's own oracle sets liquidation prices." },
+              { title: "Pyth availability risk", tone: "neutral", text: "Parity's own cross-check against Pyth is currently unavailable for equity and xStock feeds (our API key isn't entitled to them yet), so this is sized conservatively, and that's disclosed. Kamino's own oracle sets liquidation prices." },
             ]}
           />
         </DetailSection>
@@ -115,9 +115,9 @@ export default function RedepositPage() {
               {
                 q: "Why won’t Parity recommend borrowing just to redeposit and earn?",
                 a: carryNegative ? (
-                  <>Because right now it loses money: borrowing USDC costs <N>{pct(usdc.borrowApyPct)}</N> while supplying it earns <N>{pct(usdc.supplyApyPct)}</N>, a net carry of <N>{carryLabel}</N> a year. The agent says so and suggests borrowing only for what you actually need. It will consider the earn leg once supply beats borrow.</>
+                  <>Because right now it loses money: borrowing USDC costs <N>{pct(usdc.borrowApyPct)}</N> while supplying it earns <N>{pct(usdc.supplyApyPct)}</N>, a net carry of <N>{carryLabel}</N> a year. Parity says so, and suggests borrowing only for what you actually need. It will consider the earn leg once supply beats borrow.</>
                 ) : (
-                  <>It will, when the math works: supplying USDC currently earns <N>{pct(usdc.supplyApyPct)}</N> against a <N>{pct(usdc.borrowApyPct)}</N> borrow cost. The agent still sizes it conservatively and shows both rates.</>
+                  <>It will, when the math works: supplying USDC currently earns <N>{pct(usdc.supplyApyPct)}</N> against a <N>{pct(usdc.borrowApyPct)}</N> borrow cost. It&apos;s still sized conservatively, with both rates shown.</>
                 ),
               },
               { q: "What does borrowing cost?", a: <>You pay Kamino&apos;s variable USDC borrow rate, <N>{borrowApyLabel}</N> APY as of the last check. It moves with how much of the pool is borrowed, so a proposal shows the rate at the moment it is made, not a fixed quote.</> },

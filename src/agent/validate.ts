@@ -134,8 +134,26 @@ function keyLogs(sim: SimulationResult): string[] {
 
 export class StrategyValidator {
   private counter = 0;
+  /**
+   * Per-wallet getPosition() reuse, scoped to this class only — /api/position (Portfolio) and the agent's own
+   * get_position tool still call KaminoClient.getPosition() directly and are always live, untouched by this.
+   * VERIFIED 2026-10-02: a single getPosition() round-trip against the shared public RPC measured anywhere from
+   * 0.3s to 14s, and the UI re-validates on every debounced keystroke while someone edits a Borrow/Multiply amount —
+   * refetching the SAME wallet's balance several times within one typing burst added seconds for no reason, since
+   * the balance cannot have changed between two edits a few seconds apart.
+   */
+  private positionCache = new Map<string, { position: WalletPosition; at: number }>();
+  private static readonly POSITION_TTL_MS = 5_000;
 
   constructor(private kamino: KaminoClient) {}
+
+  private async getPositionForValidation(walletAddress: string): Promise<WalletPosition> {
+    const cached = this.positionCache.get(walletAddress);
+    if (cached && Date.now() - cached.at < StrategyValidator.POSITION_TTL_MS) return cached.position;
+    const position = await this.kamino.getPosition(walletAddress);
+    this.positionCache.set(walletAddress, { position, at: Date.now() });
+    return position;
+  }
 
   async validate(
     walletAddress: string,
@@ -143,7 +161,7 @@ export class StrategyValidator {
     options: { includeTransaction?: boolean } = {}
   ): Promise<ValidationResult> {
     const validationId = `val-${Date.now().toString(36)}-${++this.counter}`;
-    const position = await this.kamino.getPosition(walletAddress);
+    const position = await this.getPositionForValidation(walletAddress);
 
     const base = {
       validationId,

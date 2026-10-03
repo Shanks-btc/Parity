@@ -39,6 +39,7 @@ import {
   getScopeRefreshIxForObligationAndReserves,
   DEFAULT_RECENT_SLOT_DURATION_MS,
   PROGRAM_ID,
+  U64_MAX,
   type KaminoObligation,
   type Position,
 } from "@kamino-finance/klend-sdk";
@@ -274,13 +275,15 @@ export class KaminoClient {
     const market = this.requireMarket();
     const owner = address(walletAddress);
 
-    const obligations = await market.getAllUserObligations(owner);
-    const details = obligations.map((o) => this.describeObligation(o));
-
-    const [walletBalances, solBalance] = await Promise.all([
+    // These three reads are independent — VERIFIED 2026-10-02: running them sequentially (obligations, then
+    // balances+SOL) measured 12-15s end to end against the public RPC on some requests; Promise.all-ing all three
+    // instead of only the last two cuts it to roughly the slowest single call.
+    const [obligations, walletBalances, solBalance] = await Promise.all([
+      market.getAllUserObligations(owner),
       this.getWalletBalances(walletAddress),
       this.rpc.getBalance(owner).send(),
     ]);
+    const details = obligations.map((o) => this.describeObligation(o));
 
     return {
       walletAddress,
@@ -377,16 +380,26 @@ export class KaminoClient {
    *   - multiply: Kamino has live Multiply-tagged positions for this collateral (the Phase 1
    *     evidence — present for SPYx, absent for AAPLx as of 2026-09-22).
    */
+  /**
+   * Below this age a cached result is served directly instead of re-fetching. VERIFIED 2026-10-02: each live call
+   * does a real RPC getSlot() plus an HTTP round-trip to Kamino's leverage/metrics endpoint, and /api/simulate calls
+   * this on every keystroke-driven re-simulation (same collateral symbol, just a different amount) — without this,
+   * every single edit to a Borrow/Multiply amount repeated both of those round-trips for no reason, since LTV, APY
+   * and Multiply-live-status don't meaningfully change within a few seconds.
+   */
+  private static readonly CAPABILITIES_TTL_MS = 20_000;
+
   async getAssetCapabilities(symbol: string): Promise<AssetCapabilities> {
+    const cached = this.capabilitiesCache.get(symbol);
+    if (cached && Date.now() - cached.at < KaminoClient.CAPABILITIES_TTL_MS) return cached.result;
     try {
       const live = await this.fetchAssetCapabilities(symbol);
-      this.capabilitiesCache.set(symbol, { result: live, cachedAt: new Date().toISOString() });
+      this.capabilitiesCache.set(symbol, { result: live, cachedAt: new Date().toISOString(), at: Date.now() });
       return live;
     } catch (err) {
       // Fallback: Kamino's leverage/metrics API (or the RPC) failed or timed out. Reuse the last
       // good result for this symbol rather than leaving the agent with no capability data —
       // clearly marked, so neither the agent nor a log reader mistakes it for fresh data.
-      const cached = this.capabilitiesCache.get(symbol);
       const liveError = (err as Error).message;
       if (!cached) throw err;
       console.warn(
@@ -397,8 +410,8 @@ export class KaminoClient {
     }
   }
 
-  /** Last successful live getAssetCapabilities result per symbol (process lifetime). */
-  private capabilitiesCache = new Map<string, { result: AssetCapabilities; cachedAt: string }>();
+  /** Last successful live getAssetCapabilities result per symbol (process lifetime), reused within CAPABILITIES_TTL_MS. */
+  private capabilitiesCache = new Map<string, { result: AssetCapabilities; cachedAt: string; at: number }>();
 
   private async fetchAssetCapabilities(symbol: string): Promise<AssetCapabilities> {
     const market = this.requireMarket();
@@ -594,6 +607,18 @@ export class KaminoClient {
   }
 
   /**
+   * `amount` for a repay/withdraw: either a real human-readable amount, or the literal "max" — klend-sdk's own
+   * convention for "all of it" is the protocol sentinel U64_MAX (a raw-unit string, not a scaled human number),
+   * which the program resolves on-chain to the real current debt/collateral (including interest accrued since
+   * the position was last read), rather than us approximating a "full" number that risks being short by a few
+   * raw units of accrued interest by the time the transaction lands. Not a real token amount, so it bypasses
+   * toRawAmount's decimal scaling entirely.
+   */
+  private toRawRepayOrWithdrawAmount(mintAddress: string, amount: Decimal | "max"): string {
+    return amount === "max" ? U64_MAX : this.toRawAmount(mintAddress, amount);
+  }
+
+  /**
    * Builds (does NOT send) a deposit transaction — depositing an xStock as collateral.
    * Signing/sending is the caller's responsibility (wallet adapter / TransactionSigner),
    * kept separate deliberately so nothing in this file can move funds on its own.
@@ -677,6 +702,82 @@ export class KaminoClient {
       address(mintAddress),
       owner,
       new VanillaObligation(PROGRAM_ID),
+      undefined
+    );
+  }
+
+  /**
+   * Builds (does NOT send) a repay of borrowed USDC against a Vanilla obligation. `amount` is human-readable, or
+   * the literal "max" to repay the full debt (see toRawRepayOrWithdrawAmount).
+   *
+   * INVESTIGATED 2026-10-02 (klend-sdk source, not assumed): unlike buildDepositTx/buildBorrowTx,
+   * KaminoAction.buildRepayTxns takes `currentSlot` as a REQUIRED (not optional) parameter — it's not just for
+   * refresh-instruction staleness: when amount is the U64_MAX "repay everything" sentinel, the SDK computes the
+   * real safe-repay amount from the obligation's recorded debt plus interest accrued up to currentSlot
+   * (KaminoAction.updateWSOLAccount in the SDK). Partial repay is fully supported — any amount less than the
+   * total debt is accepted as-is, same as a deposit amount.
+   */
+  async buildRepayTx(owner: any, mintAddress: string, amount: Decimal | "max", useV2Ixs = true) {
+    const market = this.requireMarket();
+    const currentSlot = await this.rpc.getSlot().send();
+    return KaminoAction.buildRepayTxns(
+      market,
+      this.toRawRepayOrWithdrawAmount(mintAddress, amount),
+      address(mintAddress),
+      owner,
+      new VanillaObligation(PROGRAM_ID),
+      useV2Ixs,
+      undefined,
+      currentSlot
+    );
+  }
+
+  /**
+   * Builds (does NOT send) a withdraw of deposited collateral from a Vanilla obligation, redeemed straight back
+   * to the real liquidity mint (e.g. AAPLx) in one step — klend-sdk's buildWithdrawTxns composes
+   * WithdrawObligationCollateral + RedeemReserveCollateral itself (confirmed from the generated instruction
+   * accounts: `userDestinationLiquidity`, no separate c-token destination). `amount` is human-readable, or "max"
+   * to withdraw everything deposited in that reserve.
+   */
+  async buildWithdrawTx(owner: any, mintAddress: string, amount: Decimal | "max", useV2Ixs = true) {
+    const market = this.requireMarket();
+    return KaminoAction.buildWithdrawTxns(
+      market,
+      this.toRawRepayOrWithdrawAmount(mintAddress, amount),
+      address(mintAddress),
+      owner,
+      new VanillaObligation(PROGRAM_ID),
+      useV2Ixs,
+      undefined
+    );
+  }
+
+  /**
+   * Builds (does NOT send) a full close of a Vanilla position: repays the entire USDC debt and withdraws the
+   * entire collateral, as ONE atomic transaction — klend-sdk's own buildRepayAndWithdrawTxns, not two separate
+   * actions merged by hand (repay must be composed before withdraw so the obligation's debt is already clear
+   * when the withdraw's LTV check runs; the SDK handles that ordering, not us). Both legs use the U64_MAX
+   * "everything" sentinel; the real amounts are resolved on-chain at execution.
+   *
+   * RENT, VERIFIED 2026-10-02 (klend program IDL inspected directly, not assumed): the klend program ships NO
+   * "close obligation" instruction of any kind. This clears the debt and empties the collateral, but the
+   * obligation PDA itself stays allocated on-chain afterward — its rent (~0.0177 SOL, measured in the Borrow
+   * preflight: 17,637,760 lamports for the obligation account alone) is NOT returned to the user by this or any
+   * other instruction this SDK exposes. Never describe this as recovering everything that was put in.
+   */
+  async buildCloseVanillaPositionTx(owner: any, collateralMint: string, debtMint: string, useV2Ixs = true) {
+    const market = this.requireMarket();
+    const currentSlot = await this.rpc.getSlot().send();
+    return KaminoAction.buildRepayAndWithdrawTxns(
+      market,
+      U64_MAX,
+      address(debtMint),
+      U64_MAX,
+      address(collateralMint),
+      owner,
+      currentSlot,
+      new VanillaObligation(PROGRAM_ID),
+      useV2Ixs,
       undefined
     );
   }

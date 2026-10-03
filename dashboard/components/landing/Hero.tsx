@@ -35,7 +35,7 @@ export function Hero() {
       </p>
 
       <div className="z-[1] mt-2 flex w-full flex-col gap-3.5 sm:w-auto sm:flex-row">
-        <ConnectWalletButton size="hero" />
+        <ConnectWalletButton size="hero" inert />
         {/* Opens the intent wizard as a modal over this page (no navigation, no scroll to #strategies). */}
         <ExploreStrategiesButton className="w-full cursor-pointer rounded-lg border border-line-strong bg-transparent px-7 py-4 text-center font-mono text-[15px] font-medium text-ink hover:border-gold-deep hover:text-gold-text sm:w-auto" />
       </div>

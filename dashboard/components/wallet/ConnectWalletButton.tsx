@@ -1,9 +1,12 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { usePosition } from "@/lib/api";
+import { tokenAmount, usd } from "@/components/app/fields";
 import { shortAddress } from "@/lib/wallet";
 
 /**
@@ -69,6 +72,21 @@ const MENU: Record<Tone, { panel: string; item: string; muted: string }> = {
   dark: { panel: "border-term-control bg-term-surface", item: "text-term-text hover:bg-term-raised", muted: "text-term-muted" },
 };
 
+/** One balance/position row inside the connected dropdown. */
+function Stat({ label, value, note, tone, warn }: { label: string; value: string; note?: string; tone: Tone; warn?: boolean }) {
+  const valueColor = warn ? "text-clay-text" : tone === "dark" ? "text-term-text" : "text-ink";
+  const noteColor = tone === "dark" ? "text-term-muted" : "text-ink-faint";
+  return (
+    <div className="flex items-baseline justify-between gap-3 font-mono text-[12px]">
+      <span className={tone === "dark" ? "text-term-muted" : "text-ink-muted"}>{label}</span>
+      <span className="text-right">
+        <span className={valueColor}>{value}</span>
+        {note && <span className={`ml-1.5 ${noteColor}`}>{note}</span>}
+      </span>
+    </div>
+  );
+}
+
 function Chevron({ open, className = "" }: { open: boolean; className?: string }) {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true" className={`shrink-0 transition-transform ${open ? "rotate-180" : ""} ${className}`}>
@@ -83,10 +101,13 @@ export function ConnectWalletButton({
   size = "nav",
   tone = "light",
   children = DEFAULT_LABEL,
+  inert = false,
 }: {
   size?: Size;
   tone?: Tone;
   children?: ReactNode;
+  /** Static, non-functional display: always a disabled "Connect Vault" button, never the address or menu. */
+  inert?: boolean;
 }) {
   const { publicKey, connected, connecting, disconnecting, wallet, disconnect, select } = useWallet();
   const { setVisible } = useWalletModal();
@@ -122,7 +143,21 @@ export function ConnectWalletButton({
   }, [open]);
 
   const address = mounted && connected && publicKey ? publicKey.toBase58() : null;
+  // Real balances and Kamino position, read only once the menu is actually opened — this component renders in
+  // several places on the same page (nav + a page's own hero/secondary button), so an unconditional fetch would
+  // multiply /api/position calls for no reason.
+  const [menuOpened, setMenuOpened] = useState(false);
+  const position = usePosition(menuOpened ? address : null);
   const nav = size === "nav";
+  if (inert) {
+    return (
+      <div data-wallet-state="static">
+        <button type="button" disabled aria-disabled="true" className={`shrink-0 cursor-default whitespace-nowrap border border-transparent font-mono font-medium ${GEOMETRY[size][tone]} ${DISCONNECTED[size][tone]}`}>
+          Connect Vault
+        </button>
+      </div>
+    );
+  }
   // The header row (logo + wallet + hamburger) has a fixed minimum width, so on small phones the wallet
   // button slims down in steps — measured against a 305px content width (a "320px" window with a
   // classic scrollbar): label "Connect" below 390px, no status dot / chevron below 420px, and a shorter
@@ -184,7 +219,10 @@ export function ConnectWalletButton({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Wallet ${address}, open menu`}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          setOpen((o) => !o);
+          setMenuOpened(true);
+        }}
         className={`${base} flex items-center gap-[8px] ${CONNECTED[size][tone]}`}
       >
         <span aria-hidden="true" className={`inline-block size-[8px] shrink-0 rounded-full bg-positive ${nav ? "max-[419px]:hidden" : ""}`} />
@@ -205,9 +243,42 @@ export function ConnectWalletButton({
         <div
           role="menu"
           aria-label="Wallet"
-          className={`absolute right-0 z-[60] min-w-[220px] ${size === "block" ? "bottom-full mb-2" : "top-full mt-2"} rounded-xl border p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.18)] ${menu.panel}`}
+          className={`absolute right-0 z-[60] w-[280px] max-w-[calc(100vw-32px)] ${size === "block" ? "bottom-full mb-2" : "top-full mt-2"} rounded-xl border p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.18)] ${menu.panel}`}
         >
           <div className={`px-3 pb-2 pt-1.5 font-mono text-[11px] ${menu.muted}`}>Connected with {wallet?.adapter.name ?? "wallet"}</div>
+
+          {/* Real balances and Kamino position — same /api/position the Portfolio page reads, never invented numbers. */}
+          <div className={`mb-1 border-y px-3 py-2.5 ${tone === "dark" ? "border-term-control" : "border-line-soft"}`}>
+            <div className={`mb-1.5 font-mono text-[10px] tracking-[0.04em] ${menu.muted}`}>WALLET ON SOLANA</div>
+            {position.status === "loading" && <div className={`font-mono text-[12px] ${menu.muted}`}>Reading your balances…</div>}
+            {position.status === "error" && <div className="font-mono text-[12px] text-clay-text">Could not read balances: {position.error}</div>}
+            {position.status === "ready" && (
+              <div className="flex flex-col gap-1">
+                <Stat label="SOL" value={`${tokenAmount(position.data.solBalance, 4)} SOL`} tone={tone} />
+                {position.data.walletBalances
+                  .filter((b) => Number(b.amount) > 0)
+                  .map((b) => (
+                    <Stat key={b.mintAddress} label={b.symbol} value={`${tokenAmount(b.amount, 6)} ${b.symbol}`} note={usd(Number(b.valueUsd))} tone={tone} />
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {position.status === "ready" && position.data.obligations.length > 0 && (
+            <div className={`mb-1 border-b px-3 py-2.5 ${tone === "dark" ? "border-term-control" : "border-line-soft"}`}>
+              <div className={`mb-1.5 font-mono text-[10px] tracking-[0.04em] ${menu.muted}`}>KAMINO POSITION</div>
+              <div className="flex flex-col gap-1">
+                {position.data.obligations.map((o) => {
+                  const hf = o.healthFactor ? Number(o.healthFactor) : null;
+                  return <Stat key={o.obligationAddress} label={o.type} value={hf !== null ? `HF ${hf.toFixed(2)}` : "No debt"} note={usd(Number(o.netAccountValueUsd))} tone={tone} warn={hf !== null && hf < 1.5} />;
+                })}
+              </div>
+            </div>
+          )}
+
+          <Link href="/portfolio" role="menuitem" onClick={() => setOpen(false)} className={`flex w-full items-center rounded-lg px-3 py-2.5 text-left font-mono text-[13px] ${menu.item}`}>
+            View Portfolio →
+          </Link>
           <button type="button" role="menuitem" onClick={copy} className={`flex w-full cursor-pointer items-center justify-between gap-4 rounded-lg px-3 py-2.5 text-left font-mono text-[13px] ${menu.item}`}>
             <span>Copy address</span>
             <span aria-live="polite" className={menu.muted}>{copied ? "Copied" : ""}</span>

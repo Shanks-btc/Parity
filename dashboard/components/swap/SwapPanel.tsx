@@ -252,9 +252,9 @@ export function SwapPanel({ initialAsset, initialPay, from, next, className = ""
         { label: "You pay", value: `${fmt(snap.quote.spend, 9)} ${snap.quote.side === "buy" ? snap.quote.counterToken : snap.quote.asset}` },
         { label: "You receive (estimate)", value: `${fmt(snap.quote.expectedOut)} ${snap.quote.side === "buy" ? snap.quote.asset : snap.quote.counterToken}` },
         { label: `Minimum after ${SLIPPAGE_PCT}% slippage`, value: `${fmt(snap.quote.minimumOut)} ${snap.quote.side === "buy" ? snap.quote.asset : snap.quote.counterToken}` },
-        { label: "Route", value: snap.quote.routes.join(" + ") || "Jupiter" },
+        { label: "Route", value: snap.quote.routes.join(" and ") || "Jupiter" },
         { label: "Price impact", value: `${Number(snap.quote.priceImpactPct).toFixed(3)}%`, tone: Number(snap.quote.priceImpactPct) > 1 ? "clay" : "ink" },
-        { label: "Network + priority fee", value: solText(lamportsToSol(snap.simulation.costs.totalFeeLamports)) },
+        { label: "Network and priority fee", value: solText(lamportsToSol(snap.simulation.costs.totalFeeLamports)) },
         ...(snap.simulation.costs.createsTokenAccount ? [{ label: `One-time ${snap.quote.side === "buy" ? snap.quote.asset : snap.quote.counterToken} account rent`, value: solText(lamportsToSol(snap.simulation.costs.tokenAccountRentLamports)) }] : []),
         ...(snap.simulation.costs.otherKeptRentLamports > 0 ? [{ label: "Extra route account (recoverable)", value: solText(lamportsToSol(snap.simulation.costs.otherKeptRentLamports)) }] : []),
       ]
@@ -422,17 +422,17 @@ export function SwapPanel({ initialAsset, initialPay, from, next, className = ""
 
         {q && (
           <dl className="m-0 flex flex-col gap-2 border-t border-term-line pt-4 font-mono text-[11px]" data-testid="swap-details">
-            {line("Route", q.routes.join(" + ") || "Jupiter", "swap-route")}
+            {line("Route", q.routes.join(" and ") || "Jupiter", "swap-route")}
             {line("Price impact", <span className={highImpact ? "text-clay-text" : ""}>{impact !== null ? `${impact.toFixed(3)}%` : ", "}{highImpact && " (high)"}</span>, "swap-impact")}
             {line(`Min received (${SLIPPAGE_PCT}%)`, `${fmt(q.minimumOut)} ${receiveUnit}`, "swap-min")}
             {pv && costs ? (
               <>
-                {line("Network + priority fee", solText(lamportsToSol(costs.totalFeeLamports)), "swap-fee")}
+                {line("Network and priority fee", solText(lamportsToSol(costs.totalFeeLamports)), "swap-fee")}
                 {costs.createsTokenAccount && line(`One-time ${receiveUnit} account rent`, solText(lamportsToSol(costs.tokenAccountRentLamports)), "swap-rent")}
                 {costs.otherKeptRentLamports > 0 && line("Extra route account", <span>{solText(lamportsToSol(costs.otherKeptRentLamports))} <span className="text-term-faint">(recoverable by closing it)</span></span>, "swap-extra-rent")}
               </>
             ) : (
-              line("Fees + rent", <span className="text-term-faint">{!wallet ? "shown once connected" : pvLoading ? "simulating…" : pvError ? "unavailable" : "…"}</span>, "swap-fee")
+              line("Fees and rent", <span className="text-term-faint">{!wallet ? "shown once connected" : pvLoading ? "simulating…" : pvError ? "unavailable" : "…"}</span>, "swap-fee")
             )}
             {line("Kamino oracle", `${usdText(Number(q.oraclePriceUsd))}${implied ? ` · swap ${usdText(implied)}` : ""}`, "swap-oracle")}
           </dl>
@@ -449,7 +449,6 @@ export function SwapPanel({ initialAsset, initialPay, from, next, className = ""
       {snap && (
         <TxModal
           open={modal}
-          venue="Jupiter"
           title={`${snap.quote.side === "buy" ? "Swap" : "Sell"} ${fmt(snap.quote.spend, 9)} ${snap.quote.side === "buy" ? snap.quote.counterToken : snap.quote.asset} for about ${fmt(snap.quote.expectedOut)} ${snap.quote.side === "buy" ? snap.quote.asset : snap.quote.counterToken}.`}
           rows={rows}
           simulation={{ projectedHealthFactor: null, simulation: { ran: true, slot: snap.simulation.slot, unitsConsumed: snap.simulation.unitsConsumed } }}

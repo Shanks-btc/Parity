@@ -32,6 +32,15 @@ const FAQS: { q: string; a: ReactNode }[] = [
     ),
   },
   {
+    q: "Does Parity use AI?",
+    a: (
+      <>
+        Yes, one step. Parity uses an AI reasoning step to run these checks, reading your position, verifying prices,
+        and simulating the transaction, but it only proposes. Every signature is yours.
+      </>
+    ),
+  },
+  {
     q: "Does Parity hold or move my funds?",
     a: (
       <>

@@ -30,7 +30,7 @@ export function SimulationPanel({ state, result, error, hf, blocked }: { state: 
       </p>
       {hf !== null && hf < HF_WARN && (
         <p className="mb-0 mt-2 font-serif text-[13px] leading-normal text-clay-text">
-          {blocked ? `This is below ${HF_BLOCK.toFixed(2)}, too close to liquidation, so signing is blocked. Borrow less or supply more.` : `Below ${HF_WARN.toFixed(1)}, the health factor Parity's agent treats as its conservative minimum: a modest price drop could put this position at risk of liquidation.`}
+          {blocked ? `This is below ${HF_BLOCK.toFixed(2)}, too close to liquidation, so signing is blocked. Borrow less or supply more.` : `Below ${HF_WARN.toFixed(1)}, the health factor Parity treats as its conservative minimum: a modest price drop could put this position at risk of liquidation.`}
         </p>
       )}
     </div>

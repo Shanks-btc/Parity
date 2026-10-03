@@ -39,7 +39,7 @@ export function ClosingCTA() {
           No commitment, no form to fill out, Parity reads your real Portfolio and tells you what&apos;s true today.
         </p>
         <div className="flex flex-col justify-center gap-3.5 sm:flex-row">
-          <ConnectWalletButton size="cta">Connect Wallet →</ConnectWalletButton>
+          <ConnectWalletButton size="cta" inert />
           <a
             href="#proof"
             className="inline-block w-full rounded-[30px] border border-white/40 bg-transparent px-[30px] py-4 font-mono text-[15px] font-medium text-white hover:border-white sm:w-auto"

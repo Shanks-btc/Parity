@@ -24,6 +24,37 @@ export type Outcome =
 
 export type ExecuteState = { step: "idle" } | { step: "building" } | { step: "signing" } | { step: "submitting" } | { step: "done"; outcome: Outcome };
 
+/**
+ * Wallet adapters (Phantom, Solflare, ...) wrap whatever the extension actually threw in a
+ * `WalletSignTransactionError` whose own `.message` is a generic line like "Transaction simulation
+ * failed" — the real reason (often with on-chain logs) sits on `.error`, the original error the
+ * extension raised. VERIFIED 2026-10-02: the base `WalletError` class stores it there, not in
+ * `.cause`. Walk that chain and surface whatever extra detail actually exists, instead of just the
+ * generic top-level message.
+ */
+/**
+ * Everything found BELOW the top-level error (its `.error` chain and any `.logs`) that ISN'T just a repeat of
+ * `topMessage` — wallet-standard adapters add their own wrapper on top of whatever the extension threw
+ * (`StandardWalletAdapter.signTransaction` re-throws as `WalletSignTransactionError(error?.message, error)`), so the
+ * chain often has the SAME generic message twice before any real detail (or lack of it) shows up.
+ */
+function walletErrorDetail(e: unknown, topMessage: string): string {
+  const seen = new Set<unknown>();
+  const parts: string[] = [];
+  let cur: unknown = e;
+  while (cur && typeof cur === "object" && !seen.has(cur)) {
+    seen.add(cur);
+    const obj = cur as { message?: unknown; error?: unknown; logs?: unknown };
+    if (typeof obj.message === "string" && obj.message && obj.message !== topMessage && !parts.includes(obj.message)) parts.push(obj.message);
+    if (Array.isArray(obj.logs)) {
+      const logLines = obj.logs.filter((l): l is string => typeof l === "string" && /error|fail|insufficient/i.test(l)).slice(-4);
+      for (const l of logLines) if (!parts.includes(l)) parts.push(l);
+    }
+    cur = obj.error;
+  }
+  return parts.join(" | ");
+}
+
 const toBase64 = (bytes: Uint8Array) => {
   let s = "";
   for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
@@ -67,7 +98,13 @@ export function useExecute(onSettled?: () => void) {
       } catch (e) {
         // Wallets word a dismissed prompt differently; anything thrown here means nothing was signed.
         const msg = (e as Error).message || "";
-        return /reject|denied|declin|cancel|closed/i.test(msg) ? done({ kind: "declined" }) : done({ kind: "rejected", error: msg || "The wallet did not sign." });
+        if (/reject|denied|declin|cancel|closed/i.test(msg)) return done({ kind: "declined" });
+        const detail = walletErrorDetail(e, msg);
+        // By this point Parity's own build already simulated successfully (the "building" step passed) — a failure
+        // here is the WALLET's own re-check, run again right as you approve, against whatever the chain looks like
+        // a few seconds later. Say so, so "it just passed simulation" and "it failed simulation" aren't a contradiction.
+        const text = !detail && /simulat/i.test(msg) ? `${msg} (your wallet's own check, run again right before signing — Parity's build already passed).` : `${msg}${detail ? `: ${detail}` : ""}`;
+        return done({ kind: "rejected", error: text || "The wallet did not sign." });
       }
 
       setState({ step: "submitting" });

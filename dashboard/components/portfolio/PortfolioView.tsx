@@ -8,6 +8,7 @@ import { Notice } from "../app/AppShell";
 import { HF_BLOCK, HF_WARN } from "../app/SimulationPanel";
 import { tokenAmount, usd } from "../app/fields";
 import { ConnectWalletButton } from "../wallet/ConnectWalletButton";
+import { ManagePosition } from "./ManagePosition";
 
 type Obligation = WalletPosition["obligations"][number];
 type Balance = WalletPosition["walletBalances"][number];
@@ -67,13 +68,13 @@ export function PortfolioView() {
         <Group
           id="vanilla" title="Borrow positions" tag="VANILLA"
           blurb="Standard Kamino obligations: collateral you deposited and USDC you borrowed against it, managed by you."
-          items={vanilla}
+          items={vanilla} onChanged={position.reload} manageable
         />
       )}
       {multiply.length > 0 && (
         <Group
           id="multiply" title="Multiply positions" tag="MULTIPLY"
-          blurb="Leveraged positions opened through Kamino Multiply. The debt was taken on to add exposure, and Kamino's own mechanism manages the leverage, not Parity."
+          blurb="Leveraged positions opened through Kamino Multiply. The debt was taken on to add exposure, and Kamino's own mechanism manages the leverage, not Parity. Repay and withdraw aren't offered here yet, unwinding a Multiply position means reversing a flash loan and a swap, not a plain repay/withdraw."
           items={multiply}
         />
       )}
@@ -125,7 +126,7 @@ function SpotRow({ b }: { b: Balance }) {
   );
 }
 
-function Group({ id, title, tag, blurb, items }: { id: string; title: string; tag: string; blurb: string; items: Obligation[] }) {
+function Group({ id, title, tag, blurb, items, onChanged, manageable }: { id: string; title: string; tag: string; blurb: string; items: Obligation[]; onChanged?: () => void; manageable?: boolean }) {
   return (
     <section aria-labelledby={`${id}-title`} data-testid={`group-${id}`}>
       <div className="mb-1 flex items-center gap-3">
@@ -133,12 +134,12 @@ function Group({ id, title, tag, blurb, items }: { id: string; title: string; ta
         <span className="rounded-xl bg-line-soft px-2.5 py-1 font-mono text-[10px] tracking-[0.03em] text-ink-muted">{tag}</span>
       </div>
       <p className="m-0 mb-4 max-w-[680px] font-serif text-[14px] leading-normal text-ink-muted">{blurb}</p>
-      <div className="flex flex-col gap-4">{items.map((o) => <ObligationPanel key={o.obligationAddress} o={o} />)}</div>
+      <div className="flex flex-col gap-4">{items.map((o) => <ObligationPanel key={o.obligationAddress} o={o} onChanged={onChanged} manageable={manageable} />)}</div>
     </section>
   );
 }
 
-function ObligationPanel({ o }: { o: Obligation }) {
+function ObligationPanel({ o, onChanged, manageable }: { o: Obligation; onChanged?: () => void; manageable?: boolean }) {
   const hf = o.healthFactor ? Number(o.healthFactor) : null;
   const s = healthStatus(hf);
   return (
@@ -173,6 +174,7 @@ function ObligationPanel({ o }: { o: Obligation }) {
         <span>LTV {(Number(o.ltv) * 100).toFixed(2)}%</span>
         <span>Liquidation LTV {(Number(o.liquidationLtv) * 100).toFixed(2)}%</span>
       </div>
+      {manageable && <ManagePosition obligationAddress={o.obligationAddress} deposits={o.deposits} borrows={o.borrows} onChanged={onChanged} />}
     </article>
   );
 }

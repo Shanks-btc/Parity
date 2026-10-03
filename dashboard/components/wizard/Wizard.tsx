@@ -24,7 +24,7 @@ export interface Answers {
 // Three real options. No "Hedge Risks": Parity has no hedging / perps / options capability, so it isn't offered.
 const GOALS: { value: Goal; title: string; text: string }[] = [
   { value: "accumulate", title: "Accumulate Spot", text: "Buy an xStock with your USDC or SOL, as a real swap right in the app." },
-  { value: "yield", title: "Yield on Stocks", text: "Put stock you hold to work, Parity's agent weighs the Earn options that genuinely apply." },
+  { value: "yield", title: "Yield on Stocks", text: "Put stock you hold to work, Parity weighs the Earn options that genuinely apply." },
   { value: "borrow", title: "Borrow Against Stocks", text: "Borrow USDC against stock you hold, without selling it." },
 ];
 const ASSETS = ["AAPLx", "SPYx", "TSLAx"] as const;
@@ -128,7 +128,7 @@ export function Wizard({ onBusyChange, onNavigate, resume = false }: { onBusyCha
       });
       if (!res.ok || !res.body) {
         const body = await res.json().catch(() => null);
-        throw new Error(body?.error ?? `The agent request failed (${res.status}).`);
+        throw new Error(body?.error ?? `The request to Parity failed (${res.status}).`);
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -156,7 +156,7 @@ export function Wizard({ onBusyChange, onNavigate, resume = false }: { onBusyCha
           }
         }
       }
-      if (!finished) throw new Error("The connection closed before the agent finished.");
+      if (!finished) throw new Error("The connection closed before Parity finished.");
     } catch (e) {
       if ((e as Error).name === "AbortError") return;
       setOutcome({ error: (e as Error).message });
@@ -221,12 +221,12 @@ export function Wizard({ onBusyChange, onNavigate, resume = false }: { onBusyCha
           <li data-testid="how-step-next" className={`flex flex-col gap-4 rounded-[10px] border p-6 ${enough || accumulate ? "border-line bg-surface" : "border-line-soft bg-surface/60"}`}>
             <div className="flex items-center gap-3">
               <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-full border border-line-strong font-mono text-[13px] text-ink">2</span>
-              <div className="font-serif text-[18px] font-semibold text-ink">{accumulate ? "Deposit into a vault" : "Ask Parity's agent"}</div>
+              <div className="font-serif text-[18px] font-semibold text-ink">{accumulate ? "Deposit into a vault" : "Get a proposal"}</div>
             </div>
             <div className="font-serif text-[14px] leading-normal text-ink-muted">
               {accumulate
                 ? "Borrow against it on Kamino, or put it to work in an Earn vault. Both pages read your real balance and prompt you to buy first if you still need to."
-                : "Once you hold enough, the agent checks your real position and simulates the exact transaction on mainnet before proposing anything."}
+                : "Once you hold enough, Parity checks your real position and simulates the exact transaction on mainnet before proposing anything."}
             </div>
             {accumulate ? (
               // Just navigation, not a paid call: both destinations handle an empty balance themselves, so this is never gated on already holding the asset.
@@ -235,9 +235,9 @@ export function Wizard({ onBusyChange, onNavigate, resume = false }: { onBusyCha
                 <Link href="/earn" onClick={() => { clearAnswers(); onNavigate?.(); }} data-testid="wizard-vault-link" className={secondaryBtn}>Deposit into a vault →</Link>
               </div>
             ) : enough ? (
-              <button type="button" onClick={runAgent} data-testid="wizard-agent-button" className={primaryBtn}>Ask Parity&apos;s agent →</button>
+              <button type="button" onClick={runAgent} data-testid="wizard-agent-button" className={primaryBtn}>Get a proposal →</button>
             ) : (
-              <span data-testid="wizard-agent-button" aria-disabled="true" className={disabledBtn}>Ask Parity&apos;s agent →</span>
+              <span data-testid="wizard-agent-button" aria-disabled="true" className={disabledBtn}>Get a proposal →</span>
             )}
           </li>
         </ol>
@@ -282,7 +282,7 @@ export function Wizard({ onBusyChange, onNavigate, resume = false }: { onBusyCha
 
       {step >= 3 && (
         <p className="mb-0 mt-4 max-w-[640px] font-serif text-[13px] leading-normal text-ink-muted">
-          {step === 3 ? "Your outlook and risk answers are sent to Parity's agent as part of your request, they change how it sizes the position and whether it will consider leverage at all." : "The agent takes this as a hard sizing limit: it sets the minimum health factor, how much of your borrowing room it uses, and whether leverage is allowed."}
+          {step === 3 ? "Your outlook and risk answers are sent to Parity as part of your request, they change how it sizes the position and whether it will consider leverage at all." : "This sets a hard limit on your position: a minimum health factor, how much of your borrowing room gets used, and whether leverage is allowed."}
         </p>
       )}
 
@@ -299,7 +299,7 @@ export function Wizard({ onBusyChange, onNavigate, resume = false }: { onBusyCha
         )}
         {isLast && !accumulate && (
           !wallet ? (
-            <ConnectWalletButton size="hero">Connect vault to ask the agent</ConnectWalletButton>
+            <ConnectWalletButton size="hero">Connect vault to continue</ConnectWalletButton>
           ) : (
             <button
               type="button"
@@ -308,14 +308,14 @@ export function Wizard({ onBusyChange, onNavigate, resume = false }: { onBusyCha
               onClick={() => (position.status === "ready" && !enough ? setPhase("buy-first") : runAgent())}
               className="cursor-pointer rounded-lg border border-transparent bg-gold-deep px-6 py-3 font-mono text-[14px] font-medium text-gold-ink hover:bg-gold-text disabled:cursor-not-allowed disabled:bg-line-strong disabled:text-ink-muted"
             >
-              {position.status === "loading" ? "Checking your wallet…" : "Ask Parity's agent"}
+              {position.status === "loading" ? "Checking your wallet…" : "Continue"}
             </button>
           )
         )}
         {isLast && !accumulate && position.status === "error" && <Notice tone="clay">Could not read your wallet: {position.error}</Notice>}
       </div>
       {isLast && !accumulate && !wallet && (
-        <p className="mb-0 mt-3 font-serif text-[13px] text-ink-muted">The agent reasons over your real Kamino position, so it needs your wallet&apos;s public address. Connecting does not sign anything.</p>
+        <p className="mb-0 mt-3 font-serif text-[13px] text-ink-muted">Parity reasons over your real Kamino position, so it needs your wallet&apos;s public address. Connecting does not sign anything.</p>
       )}
     </div>
   );

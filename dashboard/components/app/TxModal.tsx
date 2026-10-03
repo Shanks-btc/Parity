@@ -28,7 +28,6 @@ export function TxModal({
   title,
   rows,
   simulation,
-  venue = "Kamino Lend",
   state,
   onConfirm,
   onClose,
@@ -39,8 +38,6 @@ export function TxModal({
   rows: SummaryRow[];
   /** Only what the dialog reads — a ValidationResult (Kamino) or a swap simulation both fit. */
   simulation: TxSimulation;
-  /** Where the funds move, for the warning text. */
-  venue?: string;
   state: ExecuteState;
   onConfirm: () => void;
   onClose: () => void;
@@ -72,7 +69,7 @@ export function TxModal({
               You are about to sign a real transaction
             </h2>
             <p className="m-0 mb-5 font-serif text-[14px] leading-normal text-ink-muted">
-              {title} This moves real funds on Solana mainnet through {venue}. Parity never holds your keys, your wallet will ask you to approve it next.
+              {title} This moves real funds on Solana mainnet. Parity never holds your keys, your wallet will ask you to approve it next.
             </p>
             <div className="mb-4 overflow-hidden rounded-[10px] border border-line">
               {rows.map((r) => (
@@ -90,8 +87,8 @@ export function TxModal({
             </div>
             {sim && (
               <p className="m-0 mb-5 font-mono text-[11px] leading-[1.6] text-ink-faint">
-                Simulated on mainnet at slot {sim.slot}: succeeded, {sim.unitsConsumed ?? "?"} compute units{sim.instructionCount !== undefined ? `, ${sim.instructionCount} instructions` : ""}. Nothing has been signed or sent yet.
-                The transaction is rebuilt and re-simulated once more right before your wallet opens.
+                On mainnet at slot {sim.slot}: succeeded, {sim.unitsConsumed ?? "?"} compute units{sim.instructionCount !== undefined ? `, ${sim.instructionCount} instructions` : ""}. Nothing has been signed or sent yet.
+                The transaction is rebuilt once more right before your wallet opens.
               </p>
             )}
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -108,12 +105,12 @@ export function TxModal({
         {busy && (
           <div aria-live="polite">
             <h2 id="tx-title" className="m-0 mb-4 font-serif text-[22px] font-semibold text-ink">
-              {state.step === "building" ? "Building and re-simulating…" : state.step === "signing" ? "Waiting for your wallet…" : "Submitting to Solana…"}
+              {state.step === "building" ? "Building on mainnet…" : state.step === "signing" ? "Waiting for your wallet…" : "Submitting to Solana…"}
             </h2>
             <ol className="m-0 mb-4 flex list-none flex-col gap-2 p-0 font-mono text-[13px]">
               {(
                 [
-                  ["building", "Build + simulate on mainnet"],
+                  ["building", "Build on mainnet"],
                   ["signing", "Approve in your wallet"],
                   ["submitting", "Submit and confirm on-chain"],
                 ] as const
