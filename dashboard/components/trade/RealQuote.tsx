@@ -77,17 +77,13 @@ export function RealQuote({ symbol = "AAPL" }: { symbol?: string }) {
   const note = q ? marketNote(q.market) : null;
   const up = q && q.change !== null ? q.change >= 0 : null;
 
+  // No quote (still loading, or unavailable for any reason, e.g. no key configured): show nothing at all, not even a band.
+  if (!q || !note) return null;
+
   return (
     <div className="border-b border-term-line bg-charcoal" data-testid="real-quote">
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-2.5 md:px-10">
-        {state.status === "loading" && <span className="font-mono text-xs text-term-muted">Loading live {symbol} price…</span>}
-        {state.status === "error" && (
-          <span className="font-mono text-xs text-term-muted" role="status">
-            Live {symbol} price unavailable, {state.error}. Retrying…
-          </span>
-        )}
-        {q && note && (
-          <>
+        <>
             <span className="font-mono text-xs text-term-muted" data-testid="real-quote-text">
               Live price:{" "}
               <Mono className="text-[15px] text-term-text" data-testid="real-quote-price">
@@ -107,8 +103,7 @@ export function RealQuote({ symbol = "AAPL" }: { symbol?: string }) {
                 {up ? "+" : "−"}${Math.abs(q.change).toFixed(2)} ({up ? "+" : "−"}{Math.abs(q.changePercent).toFixed(2)}%) on the day
               </Mono>
             )}
-          </>
-        )}
+        </>
       </div>
     </div>
   );
