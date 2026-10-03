@@ -1,13 +1,10 @@
 # Parity
 
-**Tokenized stocks as collateral. An agent that checks before it speaks.**
-
-Parity is an onchain prime brokerage for tokenized stocks. A user states a goal in plain language or picks it from a guided wizard, an agent checks their real Kamino position and cross-checks the asset's price against Pyth, and only after a real transaction succeeds does it propose anything for the user to sign.
+Parity is an onchain prime brokerage for tokenized stocks. It turns an xStocks portfolio into working capital. You can borrow stablecoins against AAPLx or SPYx, earn yield by redepositing them into Kamino's lending pool, add leverage through Kamino Multiply, and trade through Jupiter, all from one interface. Describe what you want in plain language or pick it from a guided wizard. Parity reads your real Kamino position, checks the asset's price against Pyth, and simulates the transaction before showing you anything. You only ever sign something that has already been proven to work. Funds can come from any chain through deBridge.
 
 - **Demo video:** https://vimeo.com/manage/videos/1230313058
 - **Repository:** https://github.com/Shanks-btc/Parity
-- **Live app:** `<insert current live Railway URL once redeploy is confirmed>`
-- **Verification log:** [TESTPLAN.md](TESTPLAN.md), the full live verification sequence and its real, dated results
+- **Live app: https://dashboard-production-d8bb.up.railway.app/
 
 ## Contents
 
