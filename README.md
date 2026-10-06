@@ -4,7 +4,7 @@ Parity is an onchain prime brokerage for tokenized stocks. It turns an xStocks p
 
 - **Demo video:** https://vimeo.com/manage/videos/1230313058
 - **Repository:** https://github.com/Shanks-btc/Parity
-- **Live app: https://dashboard-production-d8bb.up.railway.app/
+- Live app: https://dashboard-production-d8bb.up.railway.app/
 
 ## Contents
 
